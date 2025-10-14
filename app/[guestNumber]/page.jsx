@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FaClock, FaHeart, FaMapMarkerAlt, FaPause, FaPlay } from 'react-icons/fa'
+import { FaClock, FaMapMarkerAlt, FaPause, FaPlay } from 'react-icons/fa'
 
 // RSVP Modal Component
 function RSVPModal({ isOpen, onClose, guestNumber, guestName, currentResponse, lang }) {
@@ -455,48 +455,6 @@ function RSVPModal({ isOpen, onClose, guestNumber, guestName, currentResponse, l
   )
 }
 
-// Floating Hearts Component
-function FloatingHearts() {
-  const hearts = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    delay: Math.random() * 5,
-    duration: 3 + Math.random() * 4,
-    size: 8 + Math.random() * 12
-  })), [])
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {hearts.map((heart) => (
-        <motion.div
-          key={heart.id}
-          className="absolute text-pink-400/30"
-          style={{
-            left: `${heart.left}%`,
-            bottom: '-20px',
-            fontSize: `${heart.size}px`
-          }}
-          initial={{ y: 0, opacity: 0, scale: 0 }}
-          animate={{
-            y: [-20, -1000],
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0.5],
-            x: [0, Math.random() * 20 - 10]
-          }}
-          transition={{
-            duration: heart.duration,
-            delay: heart.delay,
-            repeat: Infinity,
-            ease: "easeOut"
-          }}
-        >
-          <FaHeart />
-        </motion.div>
-      ))}
-    </div>
-  )
-}
-
 // Main Wedding Component
 export default function WeddingCelebrationArabic() {
   const params = useParams()
@@ -511,7 +469,6 @@ export default function WeddingCelebrationArabic() {
   const [showMusicHint, setShowMusicHint] = useState(true)
   const [lang, setLang] = useState('ar')
   const [timeLeft, setTimeLeft] = useState({})
-  const [audioContext, setAudioContext] = useState(null)
   const audioRef = useRef(null)
 
   // Wedding date
@@ -610,12 +567,6 @@ export default function WeddingCelebrationArabic() {
       finalMessage: 'With all our love and joy, we invite you to share these special moments in our journey'
     },
   }[lang]), [lang])
-
-  // **WHY iOS AUDIO DOESN'T WORK:**
-  // 1. iOS requires explicit user gesture to play audio
-  // 2. Audio must be played within the same call stack as the user interaction
-  // 3. iOS Safari has strict autoplay policies that block audio until user interacts
-  // 4. Audio context must be created/resumed after user interaction
 
   // Enhanced audio initialization for iOS/Android
   const initializeAudio = useCallback(async () => {
@@ -952,36 +903,8 @@ export default function WeddingCelebrationArabic() {
           }}
         />
 
-        {/* Floating Hearts Background */}
-        <FloatingHearts />
-
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.1)_0%,transparent_50%)]"></div>
-
-        {/* Golden Sparkles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute text-amber-300/40"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                opacity: [0, 1, 0],
-                scale: [0, 1, 0],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 5,
-              }}
-            >
-              ✨
-            </motion.div>
-          ))}
-        </div>
 
         {/* Language Switch Button */}
         <motion.button
@@ -1002,11 +925,11 @@ export default function WeddingCelebrationArabic() {
 
         {/* Main Content Container */}
         <div className="relative z-10 w-full max-w-lg mx-auto space-y-4 mb-20">
-          {/* Guest Welcome Section */}
+          {/* Guest Welcome Section - Soft Rose Gradient */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-4 bg-white/30 backdrop-blur-lg rounded-2xl p-5 border border-white/40 shadow-xl"
+            className="text-center mb-4 bg-gradient-to-br from-rose-50/40 via-pink-50/30 to-rose-100/20 backdrop-blur-lg rounded-2xl p-5 border border-rose-200/30 shadow-xl"
           >
             <motion.h3 className="text-base text-rose-700/90 font-light mb-2">
               {t.welcome}
@@ -1021,25 +944,25 @@ export default function WeddingCelebrationArabic() {
             )}
           </motion.div>
 
-          {/* Header Section */}
+          {/* Header Section - Golden Amber Gradient */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/30 backdrop-blur-lg rounded-2xl p-5 border border-white/40 shadow-xl"
+            className="bg-gradient-to-br from-amber-50/40 via-orange-50/30 to-yellow-100/20 backdrop-blur-lg rounded-2xl p-5 border border-amber-200/30 shadow-xl"
           >
-            <motion.h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+            <motion.h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent leading-tight">
               {t.title}
             </motion.h1>
-            <motion.p className="text-rose-700/90 text-sm font-light leading-relaxed">
+            <motion.p className="text-amber-700/90 text-sm font-light leading-relaxed">
               {t.quote}
             </motion.p>
           </motion.div>
 
-          {/* Couple Section */}
+          {/* Couple Section - Romantic Pink Gradient */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white/30 backdrop-blur-lg rounded-2xl p-5 border border-white/40 shadow-xl"
+            className="bg-gradient-to-br from-pink-50/40 via-rose-50/30 to-red-100/20 backdrop-blur-lg rounded-2xl p-5 border border-pink-200/30 shadow-xl"
           >
             <motion.h2 className="text-xl text-rose-800 font-semibold mb-4 text-center">
               <span className="block text-amber-600 mb-2 text-lg">{t.groom}</span>
@@ -1051,31 +974,31 @@ export default function WeddingCelebrationArabic() {
             </motion.p>
           </motion.div>
 
-          {/* Countdown Section */}
+          {/* Countdown Section - Emerald Green Gradient */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/30 backdrop-blur-lg rounded-2xl p-5 border border-white/40 shadow-xl"
+            className="bg-gradient-to-br from-emerald-50/40 via-green-50/30 to-teal-100/20 backdrop-blur-lg rounded-2xl p-5 border border-emerald-200/30 shadow-xl"
           >
-            <h2 className="text-lg font-semibold text-rose-700 mb-4">
+            <h2 className="text-lg font-semibold text-emerald-700 mb-4">
               {t.countdown}
             </h2>
             
             {!timeLeft.finished ? (
               <div className="flex justify-center gap-2 flex-wrap">
                 {['days', 'hours', 'minutes', 'seconds'].map((key) => (
-                  <div key={key} className="bg-white/40 backdrop-blur-sm rounded-xl px-3 py-2 min-w-[60px] border border-white/50">
-                    <p className="text-rose-600 text-xl font-bold">
+                  <div key={key} className="bg-white/50 backdrop-blur-sm rounded-xl px-3 py-2 min-w-[60px] border border-white/60 shadow-md">
+                    <p className="text-emerald-600 text-xl font-bold">
                       {timeLeft[key] ?? '--'}
                     </p>
-                    <p className="text-rose-500/80 text-xs mt-1">
+                    <p className="text-emerald-500/80 text-xs mt-1">
                       {t[key]}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <motion.p className="text-lg text-rose-600 font-semibold">
+              <motion.p className="text-lg text-emerald-600 font-semibold">
                 {t.finished}
               </motion.p>
             )}
@@ -1083,40 +1006,40 @@ export default function WeddingCelebrationArabic() {
 
           {/* Date & Location Sections */}
           <div className="grid gap-3">
-            {/* Date Section */}
+            {/* Date Section - Soft Blue Gradient */}
             <motion.div
-              className="bg-white/30 backdrop-blur-lg rounded-2xl p-4 border border-white/40 shadow-xl"
+              className="bg-gradient-to-br from-blue-50/40 via-sky-50/30 to-cyan-100/20 backdrop-blur-lg rounded-2xl p-4 border border-blue-200/30 shadow-xl"
             >
-              <FaClock className="text-2xl mb-2 text-amber-500 mx-auto" />
-              <div className="text-lg font-semibold text-amber-700 mb-1">
+              <FaClock className="text-2xl mb-2 text-blue-500 mx-auto" />
+              <div className="text-lg font-semibold text-blue-700 mb-1">
                 {t.date}
               </div>
-              <div className="text-amber-600/90 text-sm">
+              <div className="text-blue-600/90 text-sm">
                 {t.time}
               </div>
             </motion.div>
 
-            {/* Venue Section */}
+            {/* Venue Section - Purple Gradient */}
             <motion.div
-              className="bg-white/30 backdrop-blur-lg rounded-2xl p-4 border border-white/40 shadow-xl"
+              className="bg-gradient-to-br from-purple-50/40 via-violet-50/30 to-fuchsia-100/20 backdrop-blur-lg rounded-2xl p-4 border border-purple-200/30 shadow-xl"
             >
-              <FaMapMarkerAlt className="text-2xl mb-2 text-blue-500 mx-auto" />
-              <div className="text-base font-semibold text-blue-700 mb-1">
+              <FaMapMarkerAlt className="text-2xl mb-2 text-purple-500 mx-auto" />
+              <div className="text-base font-semibold text-purple-700 mb-1">
                 {t.location}
               </div>
-              <div className="text-blue-600/80 text-xs">
+              <div className="text-purple-600/80 text-xs">
                 {t.royalHall}
               </div>
             </motion.div>
           </div>
 
-          {/* Final Quote Section */}
+          {/* Final Quote Section - Soft Lavender Gradient */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white/30 backdrop-blur-lg rounded-2xl p-5 border border-white/40 shadow-xl"
+            className="bg-gradient-to-br from-violet-50/40 via-purple-50/30 to-indigo-100/20 backdrop-blur-lg rounded-2xl p-5 border border-violet-200/30 shadow-xl"
           >
-            <motion.p className="text-rose-700/95 text-sm leading-loose text-center font-light italic">
+            <motion.p className="text-violet-700/95 text-sm leading-loose text-center font-light italic">
               {lang === 'ar' 
                 ? "في هذه الليلة المباركة، حيث تلتقي القلوب وتتحد الأرواح، نحتفل ببداية رحلة حب جديدة... رحلة تبدأ بوعود وتستمر بذكريات جميلة ترويها الأيام، وتنتهي بخلود في جنات النعيم"
                 : "In this blessed night, where hearts meet and souls unite, we celebrate the beginning of a new love journey... A journey that begins with promises and continues with beautiful memories told by the days, and ends with eternity in paradise"
