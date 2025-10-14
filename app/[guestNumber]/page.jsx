@@ -20,10 +20,19 @@ export default function WeddingCelebrationArabic() {
   const [showMusicHint, setShowMusicHint] = useState(true)
   const [lang, setLang] = useState('ar')
   const [timeLeft, setTimeLeft] = useState({})
+  const [audioReady, setAudioReady] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
   const audioRef = useRef(null)
 
   // Wedding date
   const WEDDING_DATE = new Date('2025-12-19T19:00:00')
+
+  // Detect iOS on component mount
+  useEffect(() => {
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window ).MSStream
+    setIsIOS(iOS)
+    console.log('iOS detected:', iOS)
+  }, [])
 
   // Countdown logic
   useEffect(() => {
@@ -54,7 +63,7 @@ export default function WeddingCelebrationArabic() {
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
 
   // High-quality background images with better resolution
-  const backgrounds = useMemo(() => ['/w3.jpg', '/w4.jpg', '/w2.jpg'], [])
+  const backgrounds = useMemo(() => ['/w3.jpg', '/w2.jpg'], [])
 
   // Section background images
   const sectionBackgrounds = useMemo(
@@ -130,6 +139,94 @@ export default function WeddingCelebrationArabic() {
     },
   }[lang]), [lang])
 
+  // iOS-specific audio fallback
+  const handleIOSAudioFallback = useCallback(() => {
+    console.log('Attempting iOS audio fallback...')
+    const iosAudio = new Audio(songs[currentSongIndex])
+    iosAudio.preload = 'auto'
+    iosAudio.volume = 0.7
+    iosAudio.playsInline = true
+    
+    iosAudio.play().then(() => {
+      console.log('iOS fallback audio started successfully')
+      setIsPlaying(true)
+      audioRef.current = iosAudio
+    }).catch(error => {
+      console.log('iOS fallback also failed:', error)
+    })
+  }, [songs, currentSongIndex])
+
+  // Enhanced user interaction handler for iOS
+  const handleUserInteraction = useCallback((e) => {
+    if (e) {
+      e.preventDefault()
+    }
+    
+    if (!userInteracted) {
+      setUserInteracted(true)
+      setShowMusicHint(false)
+      
+      // iOS-specific audio play
+      if (audioRef.current && audioReady) {
+        const playPromise = audioRef.current.play()
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Audio started successfully on iOS')
+              setIsPlaying(true)
+              if (audioRef.current) {
+                audioRef.current.volume = 0.7
+              }
+            })
+            .catch((error) => {
+              console.log('iOS Audio play failed, trying fallback:', error)
+              handleIOSAudioFallback()
+            })
+        }
+      } else if (!audioReady) {
+        console.log('Audio not ready yet, will retry...')
+        // Audio might not be ready, we'll rely on the toggle button
+      }
+    }
+  }, [userInteracted, audioReady, handleIOSAudioFallback])
+
+  // Touch-specific handler for iOS
+  const handleTouchStart = useCallback((e) => {
+    e.preventDefault()
+    handleUserInteraction()
+  }, [handleUserInteraction])
+
+  // Enhanced audio initialization
+  useEffect(() => {
+    const initializeAudio = () => {
+      if (audioRef.current) {
+        // iOS requires specific settings
+        audioRef.current.preload = 'auto'
+        audioRef.current.playsInline = true
+        audioRef.current.setAttribute('webkit-playsinline', 'true')
+        audioRef.current.setAttribute('playsinline', 'true')
+        
+        // Set volume to 0 initially for iOS
+        audioRef.current.volume = 0.5
+        
+        // Force load on iOS
+        audioRef.current.load()
+        
+        console.log('Audio initialized for iOS:', isIOS)
+        
+        // Mark audio as ready after a short delay
+        setTimeout(() => {
+          setAudioReady(true)
+        }, 1000)
+      }
+    }
+
+    if (isLoaded) {
+      initializeAudio()
+    }
+  }, [isLoaded, isIOS])
+
   // Fetch wedding settings and guest info
   useEffect(() => {
     const fetchData = async () => {
@@ -167,46 +264,65 @@ export default function WeddingCelebrationArabic() {
     }
   }, [isLoaded, guestNumber, t.guestName])
 
-  // Preload all assets
-  useEffect(() => {
-    const preloadAssets = async () => {
-      const allImages = [...backgrounds, ...Object.values(sectionBackgrounds)]
+  // Enhanced preload function for iOS compatibility
+  const preloadAssets = useCallback(async () => {
+    const allImages = [...backgrounds, ...Object.values(sectionBackgrounds)]
 
-      const imagePromises = allImages.map((src) => {
-        return new Promise((resolve) => {
-          const img = new Image()
-          img.src = src
-          img.onload = resolve
-          img.onerror = () => {
-            console.warn(`Failed to load image: ${src}`)
-            resolve()
-          }
-        })
-      })
-
-      // Preload music file
-      const audioPromise = new Promise((resolve) => {
-        if (songs[0]) {
-          const audio = new Audio()
-          audio.src = songs[0]
-          audio.oncanplaythrough = resolve
-          audio.onerror = resolve
-        } else {
+    const imagePromises = allImages.map((src) => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.src = src
+        img.onload = resolve
+        img.onerror = () => {
+          console.warn(`Failed to load image: ${src}`)
           resolve()
         }
       })
+    })
 
-      try {
-        await Promise.all([...imagePromises, audioPromise])
-        setIsLoaded(true)
-      } catch (error) {
-        console.error('Error preloading assets:', error)
-        setIsLoaded(true)
+    // iOS-specific audio preloading
+    const audioPromise = new Promise((resolve) => {
+      if (songs[0]) {
+        const audio = new Audio()
+        audio.src = songs[0]
+        audio.preload = 'auto'
+        audio.playsInline = true
+        
+        // iOS requires this event
+        audio.oncanplaythrough = () => {
+          console.log('Audio can play through on iOS')
+          resolve(true)
+        }
+        
+        audio.onerror = (e) => {
+          console.warn('Audio preload error on iOS:', e)
+          resolve(false)
+        }
+        
+        // Force load on iOS
+        audio.load()
+        
+        // Fallback timeout for iOS
+        setTimeout(() => resolve(true), 1500)
+      } else {
+        resolve(true)
       }
-    }
+    })
 
-    preloadAssets()
+    try {
+      await Promise.all([...imagePromises, audioPromise])
+      console.log('All assets preloaded successfully')
+      setIsLoaded(true)
+    } catch (error) {
+      console.error('Error preloading assets:', error)
+      setIsLoaded(true) // Still continue even if some assets fail
+    }
   }, [backgrounds, sectionBackgrounds, songs])
+
+  // Preload all assets
+  useEffect(() => {
+    preloadAssets()
+  }, [preloadAssets])
 
   // Smooth background rotation
   useEffect(() => {
@@ -227,49 +343,50 @@ export default function WeddingCelebrationArabic() {
     return () => clearTimeout(timer)
   }, [isLoaded])
 
-  // Handle user interaction for music
-  const handleUserInteraction = useCallback(() => {
-    if (!userInteracted) {
-      setUserInteracted(true)
-      setShowMusicHint(false)
-      if (audioRef.current) {
-        audioRef.current
-          .play()
-          .then(() => {
-            setIsPlaying(true)
-          })
-          .catch((error) => {
-            console.log('Audio play failed:', error)
-          })
-      }
+  // Enhanced music control functions
+  const toggleMusic = useCallback((e) => {
+    if (e) {
+      e.stopPropagation()
+      e.preventDefault()
     }
-  }, [userInteracted])
-
-  // Music control functions
-  const toggleMusic = useCallback(() => {
+    
     if (!userInteracted) {
       setUserInteracted(true)
       setShowMusicHint(false)
     }
 
-    if (audioRef.current) {
+    if (audioRef.current && audioReady) {
       if (isPlaying) {
         audioRef.current.pause()
         setIsPlaying(false)
       } else {
-        audioRef.current.play().catch((error) => {
-          console.log('Audio play failed:', error)
-        })
-        setIsPlaying(true)
+        // iOS-specific play handling
+        const playPromise = audioRef.current.play()
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true)
+            })
+            .catch((error) => {
+              console.log('iOS toggle play failed:', error)
+              handleIOSAudioFallback()
+            })
+        }
       }
+    } else if (!audioReady) {
+      console.log('Audio not ready, initializing...')
+      handleUserInteraction()
     }
-  }, [userInteracted, isPlaying])
+  }, [userInteracted, isPlaying, audioReady, handleIOSAudioFallback, handleUserInteraction])
 
   const handleNextSong = useCallback(() => {
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % songs.length)
     if (isPlaying) {
       setTimeout(() => {
-        audioRef.current?.play()
+        audioRef.current?.play().catch(error => {
+          console.log('Next song play failed:', error)
+        })
       }, 100)
     }
   }, [songs.length, isPlaying])
@@ -342,11 +459,21 @@ export default function WeddingCelebrationArabic() {
   // Show elegant loading state
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-red-900 flex items-center justify-center">
+      <div 
+        className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-red-900 flex items-center justify-center"
+        style={{
+          WebkitTransform: 'translate3d(0,0,0)',
+          transform: 'translate3d(0,0,0)'
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
+          style={{
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
+          }}
         >
           <motion.div
             animate={{
@@ -396,17 +523,38 @@ export default function WeddingCelebrationArabic() {
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-center font-arabic bg-black px-4 py-4 select-none"
       onClick={handleUserInteraction}
+      onTouchStart={handleTouchStart}
       onKeyDown={handleUserInteraction}
       role="button"
       tabIndex={0}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        KhtmlUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+        userSelect: 'none',
+        WebkitTransform: 'translate3d(0,0,0)',
+        transform: 'translate3d(0,0,0)'
+      }}
     >
-      {/* Hidden Audio Element */}
+      {/* Hidden Audio Element with iOS optimizations */}
       <audio
         ref={audioRef}
         src={songs[currentSongIndex]}
         onEnded={handleSongEnd}
         loop={false}
         preload="auto"
+        playsInline
+        crossOrigin="anonymous"
+        onLoadedMetadata={() => {
+          console.log('Audio metadata loaded')
+          setAudioReady(true)
+        }}
+        onError={(e) => {
+          console.error('Audio error:', e)
+        }}
       />
 
       {/* Optimized Background Images */}
@@ -446,13 +594,19 @@ export default function WeddingCelebrationArabic() {
 
       {/* Language Switch Button */}
       <motion.button
-        onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+        onClick={(e) => {
+          e.stopPropagation()
+          setLang(lang === 'ar' ? 'en' : 'ar')
+        }}
         className="fixed top-6 left-6 z-50 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition-all duration-300 border border-white/30 font-medium"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
+        style={{
+          WebkitTapHighlightColor: 'transparent'
+        }}
       >
         {t.switch}
       </motion.button>
@@ -468,6 +622,8 @@ export default function WeddingCelebrationArabic() {
           className="relative z-10 w-full max-w-4xl mx-auto space-y-6 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
+            WebkitTransform: 'translate3d(0,0,0)',
+            transform: 'translate3d(0,0,0)'
           }}
         >
           {/* Guest Welcome Section */}
@@ -741,6 +897,9 @@ export default function WeddingCelebrationArabic() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1.8 }}
+        style={{
+          WebkitTapHighlightColor: 'transparent'
+        }}
       >
         <div className="flex items-center gap-2">
           <motion.div
@@ -765,6 +924,10 @@ export default function WeddingCelebrationArabic() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-6 left-20 z-50 bg-black/80 backdrop-blur-md text-white p-3 rounded-xl border border-white/20 max-w-xs"
+            style={{
+              WebkitTransform: 'translate3d(0,0,0)',
+              transform: 'translate3d(0,0,0)'
+            }}
           >
             <div className="flex items-center gap-3">
               <div className="text-lg">🎵</div>
@@ -786,6 +949,9 @@ export default function WeddingCelebrationArabic() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.6 }}
+        style={{
+          WebkitTapHighlightColor: 'transparent'
+        }}
       >
         <div className="flex items-center gap-3">
           <span className="text-lg">💌</span>
@@ -799,6 +965,10 @@ export default function WeddingCelebrationArabic() {
         animate={{ opacity: 1 }}
         transition={{ delay: 2 }}
         className="mt-8 mb-24 text-white/80 text-sm z-10 text-center"
+        style={{
+          WebkitTransform: 'translate3d(0,0,0)',
+          transform: 'translate3d(0,0,0)'
+        }}
       >
         <p className="font-light mb-3">
           {t.finalMessage}
