@@ -461,7 +461,6 @@ export default function WeddingCelebrationArabic() {
   const guestNumber = params?.guestNumber
   
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [currentBg, setCurrentBg] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [weddingSettings, setWeddingSettings] = useState(null)
   const [guestInfo, setGuestInfo] = useState(null)
@@ -481,18 +480,8 @@ export default function WeddingCelebrationArabic() {
   useEffect(() => {
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     setIsIOS(iOS)
+    console.log('iOS detected:', iOS)
   }, [])
-  // Auto-open modal after 30 seconds
-useEffect(() => {
-  if (!isLoaded) return
-
-  const timer = setTimeout(() => {
-    console.log('Auto-opening RSVP modal after 30 seconds')
-    setIsModalOpen(true)
-  }, 30000) // 30 seconds = 30000 milliseconds
-
-  return () => clearTimeout(timer)
-}, [isLoaded])
 
   // Countdown logic
   useEffect(() => {
@@ -584,6 +573,24 @@ useEffect(() => {
     },
   }[lang]), [lang])
 
+  // iOS Audio Fix - Create audio context after user interaction
+  const initializeAudio = useCallback(() => {
+    if (audioRef.current) {
+      // iOS requires these specific settings
+      audioRef.current.preload = 'auto'
+      audioRef.current.playsInline = true
+      audioRef.current.setAttribute('webkit-playsinline', 'true')
+      audioRef.current.setAttribute('playsinline', 'true')
+      audioRef.current.volume = 0.7
+      
+      // Load the audio
+      audioRef.current.load()
+      
+      console.log('Audio initialized for iOS:', isIOS)
+      setAudioReady(true)
+    }
+  }, [isIOS])
+
   // Enhanced user interaction handler for iOS
   const handleUserInteraction = useCallback((e) => {
     if (e) {
@@ -594,46 +601,34 @@ useEffect(() => {
       setUserInteracted(true)
       setShowMusicHint(false)
       
-      if (audioRef.current && audioReady) {
+      // Initialize audio on first interaction
+      initializeAudio()
+      
+      // Try to play audio immediately after user interaction
+      if (audioRef.current) {
         const playPromise = audioRef.current.play()
         
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
+              console.log('Audio started successfully on iOS')
               setIsPlaying(true)
-              if (audioRef.current) {
-                audioRef.current.volume = 0.7
-              }
             })
             .catch((error) => {
-              console.log('Audio play failed:', error)
+              console.log('iOS Audio play failed:', error)
+              // Don't show error to user, just continue silently
             })
         }
       }
     }
-  }, [userInteracted, audioReady])
+  }, [userInteracted, initializeAudio])
 
   // Enhanced audio initialization
   useEffect(() => {
-    const initializeAudio = () => {
-      if (audioRef.current) {
-        audioRef.current.preload = 'auto'
-        audioRef.current.playsInline = true
-        audioRef.current.setAttribute('webkit-playsinline', 'true')
-        audioRef.current.setAttribute('playsinline', 'true')
-        audioRef.current.volume = 0.5
-        audioRef.current.load()
-        
-        setTimeout(() => {
-          setAudioReady(true)
-        }, 1000)
-      }
-    }
-
     if (isLoaded) {
       initializeAudio()
     }
-  }, [isLoaded, isIOS])
+  }, [isLoaded, initializeAudio])
 
   // Fetch wedding settings and guest info
   useEffect(() => {
@@ -682,6 +677,18 @@ useEffect(() => {
     preloadAssets()
   }, [preloadAssets])
 
+  // Auto-open modal after 30 seconds
+  useEffect(() => {
+    if (!isLoaded) return
+
+    const timer = setTimeout(() => {
+      console.log('Auto-opening RSVP modal after 30 seconds')
+      setIsModalOpen(true)
+    }, 30000) // 30 seconds = 30000 milliseconds
+
+    return () => clearTimeout(timer)
+  }, [isLoaded])
+
   // Enhanced music control functions
   const toggleMusic = useCallback((e) => {
     if (e) {
@@ -692,6 +699,7 @@ useEffect(() => {
     if (!userInteracted) {
       setUserInteracted(true)
       setShowMusicHint(false)
+      initializeAudio()
     }
 
     if (audioRef.current && audioReady) {
@@ -712,7 +720,7 @@ useEffect(() => {
         }
       }
     }
-  }, [userInteracted, isPlaying, audioReady])
+  }, [userInteracted, isPlaying, audioReady, initializeAudio])
 
   // Hide music hint after 8 seconds
   useEffect(() => {
@@ -772,6 +780,7 @@ useEffect(() => {
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       className="relative min-h-screen overflow-x-hidden flex flex-col items-center justify-center text-center font-arabic bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-4 select-none"
       onClick={handleUserInteraction}
+      onTouchStart={handleUserInteraction}
       style={{
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
@@ -779,7 +788,7 @@ useEffect(() => {
         userSelect: 'none',
       }}
     >
-      {/* Hidden Audio Element */}
+      {/* Hidden Audio Element with iOS optimizations */}
       <audio
         ref={audioRef}
         src={songs[currentSongIndex]}
@@ -787,7 +796,13 @@ useEffect(() => {
         preload="auto"
         playsInline
         crossOrigin="anonymous"
-        onLoadedMetadata={() => setAudioReady(true)}
+        onLoadedMetadata={() => {
+          console.log('Audio metadata loaded')
+          setAudioReady(true)
+        }}
+        onError={(e) => {
+          console.error('Audio error:', e)
+        }}
       />
 
       {/* Subtle Background Pattern */}
@@ -810,7 +825,7 @@ useEffect(() => {
       </motion.button>
 
       {/* Main Content Container */}
-      <div className="relative z-10 w-full max-w-lg mx-auto space-y-4 bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/40 shadow-lg mb-24">
+      <div className="relative z-10 w-full max-w-lg mx-auto space-y-4 bg-white/40 backdrop-blur-lg rounded-2xl p-4 border border-white/30 shadow-lg mb-24">
         {/* Guest Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -834,7 +849,7 @@ useEffect(() => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-xl p-4 mb-4 bg-gradient-to-br from-rose-50/80 to-pink-50/80 backdrop-blur-sm border border-rose-200/50"
+          className="relative rounded-xl p-4 mb-4 bg-white/30 backdrop-blur-md border border-white/40"
         >
           <div className="relative z-10">
             <motion.h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
@@ -850,7 +865,7 @@ useEffect(() => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative rounded-xl p-4 mb-4 bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm border border-purple-200/50"
+          className="relative rounded-xl p-4 mb-4 bg-white/30 backdrop-blur-md border border-white/40"
         >
           <div className="relative z-10">
             <motion.h2 className="text-xl text-rose-800 font-semibold mb-4 text-center">
@@ -868,7 +883,7 @@ useEffect(() => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-xl p-4 mb-4 bg-gradient-to-br from-rose-100/80 to-pink-100/80 backdrop-blur-sm border border-rose-300/50"
+          className="relative rounded-xl p-4 mb-4 bg-white/30 backdrop-blur-md border border-white/40"
         >
           <h2 className="text-lg font-semibold text-rose-700 mb-3">
             {t.countdown}
@@ -877,7 +892,7 @@ useEffect(() => {
           {!timeLeft.finished ? (
             <div className="flex justify-center gap-2 flex-wrap">
               {['days', 'hours', 'minutes', 'seconds'].map((key) => (
-                <div key={key} className="bg-white/60 backdrop-blur-sm rounded-lg px-3 py-2 min-w-[60px] border border-rose-200/50">
+                <div key={key} className="bg-white/50 backdrop-blur-sm rounded-lg px-3 py-2 min-w-[60px] border border-white/40">
                   <p className="text-rose-600 text-xl font-bold">
                     {timeLeft[key] ?? '--'}
                   </p>
@@ -898,7 +913,7 @@ useEffect(() => {
         <div className="grid gap-4 mb-4">
           {/* Date Section */}
           <motion.div
-            className="relative rounded-xl p-4 bg-gradient-to-br from-amber-50/80 to-orange-50/80 backdrop-blur-sm border border-amber-200/50"
+            className="relative rounded-xl p-4 bg-white/30 backdrop-blur-md border border-white/40"
           >
             <div className="relative z-10">
               <FaClock className="text-2xl mb-2 text-amber-500 mx-auto" />
@@ -913,7 +928,7 @@ useEffect(() => {
 
           {/* Venue Section */}
           <motion.div
-            className="relative rounded-xl p-4 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm border border-blue-200/50"
+            className="relative rounded-xl p-4 bg-white/30 backdrop-blur-md border border-white/40"
           >
             <div className="relative z-10">
               <FaMapMarkerAlt className="text-2xl mb-2 text-blue-500 mx-auto" />
@@ -931,7 +946,7 @@ useEffect(() => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative rounded-xl p-4 bg-gradient-to-br from-pink-50/80 to-rose-50/80 backdrop-blur-sm border border-pink-200/50"
+          className="relative rounded-xl p-4 bg-white/30 backdrop-blur-md border border-white/40"
         >
           <div className="relative z-10">
             <motion.p className="text-rose-700/95 text-sm leading-loose text-center font-light italic">
