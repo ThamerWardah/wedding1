@@ -470,18 +470,10 @@ export default function WeddingCelebrationArabic() {
   const [lang, setLang] = useState('ar')
   const [timeLeft, setTimeLeft] = useState({})
   const [audioReady, setAudioReady] = useState(false)
-  const [isIOS, setIsIOS] = useState(false)
   const audioRef = useRef(null)
 
   // Wedding date
   const WEDDING_DATE = new Date('2025-12-19T19:00:00')
-
-  // Detect iOS on component mount
-  useEffect(() => {
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
-    setIsIOS(iOS)
-    console.log('iOS detected:', iOS)
-  }, [])
 
   // Countdown logic
   useEffect(() => {
@@ -573,51 +565,58 @@ export default function WeddingCelebrationArabic() {
     },
   }[lang]), [lang])
 
-  // iOS Audio Fix - Create audio context after user interaction
+  // Initialize audio with proper iOS/Android compatibility
   const initializeAudio = useCallback(() => {
     if (audioRef.current) {
-      // iOS requires these specific settings
+      // Universal mobile audio settings
       audioRef.current.preload = 'auto'
       audioRef.current.playsInline = true
       audioRef.current.setAttribute('webkit-playsinline', 'true')
       audioRef.current.setAttribute('playsinline', 'true')
-      audioRef.current.volume = 0.7
+      audioRef.current.volume = 0.8
+      audioRef.current.muted = false
       
       // Load the audio
       audioRef.current.load()
       
-      console.log('Audio initialized for iOS:', isIOS)
+      console.log('Audio initialized for mobile')
       setAudioReady(true)
+      return true
     }
-  }, [isIOS])
+    return false
+  }, [])
 
-  // Enhanced user interaction handler for iOS
-  const handleUserInteraction = useCallback((e) => {
+  // Universal user interaction handler for iOS & Android
+  const handleUserInteraction = useCallback(async (e) => {
     if (e) {
       e.preventDefault()
+      e.stopPropagation()
     }
     
     if (!userInteracted) {
       setUserInteracted(true)
       setShowMusicHint(false)
       
-      // Initialize audio on first interaction
-      initializeAudio()
+      console.log('First user interaction detected')
       
-      // Try to play audio immediately after user interaction
-      if (audioRef.current) {
-        const playPromise = audioRef.current.play()
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('Audio started successfully on iOS')
-              setIsPlaying(true)
-            })
-            .catch((error) => {
-              console.log('iOS Audio play failed:', error)
-              // Don't show error to user, just continue silently
-            })
+      // Initialize audio on first interaction
+      const audioInitialized = initializeAudio()
+      
+      if (audioInitialized && audioRef.current) {
+        try {
+          // Small delay to ensure audio is ready
+          await new Promise(resolve => setTimeout(resolve, 100))
+          
+          const playPromise = audioRef.current.play()
+          
+          if (playPromise !== undefined) {
+            await playPromise
+            console.log('Audio started successfully on first interaction')
+            setIsPlaying(true)
+          }
+        } catch (error) {
+          console.log('First interaction audio play failed:', error)
+          // Silent fail - user can use music button later
         }
       }
     }
@@ -626,6 +625,7 @@ export default function WeddingCelebrationArabic() {
   // Enhanced audio initialization
   useEffect(() => {
     if (isLoaded) {
+      // Pre-initialize audio but don't play until user interaction
       initializeAudio()
     }
   }, [isLoaded, initializeAudio])
@@ -684,22 +684,21 @@ export default function WeddingCelebrationArabic() {
     const timer = setTimeout(() => {
       console.log('Auto-opening RSVP modal after 30 seconds')
       setIsModalOpen(true)
-    }, 30000) // 30 seconds = 30000 milliseconds
+    }, 30000)
 
     return () => clearTimeout(timer)
   }, [isLoaded])
 
   // Enhanced music control functions
-  const toggleMusic = useCallback((e) => {
+  const toggleMusic = useCallback(async (e) => {
     if (e) {
       e.stopPropagation()
       e.preventDefault()
     }
     
     if (!userInteracted) {
-      setUserInteracted(true)
-      setShowMusicHint(false)
-      initializeAudio()
+      // If first interaction is through music button, trigger the interaction flow
+      await handleUserInteraction()
     }
 
     if (audioRef.current && audioReady) {
@@ -707,20 +706,19 @@ export default function WeddingCelebrationArabic() {
         audioRef.current.pause()
         setIsPlaying(false)
       } else {
-        const playPromise = audioRef.current.play()
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true)
-            })
-            .catch((error) => {
-              console.log('Audio play failed:', error)
-            })
+        try {
+          const playPromise = audioRef.current.play()
+          
+          if (playPromise !== undefined) {
+            await playPromise
+            setIsPlaying(true)
+          }
+        } catch (error) {
+          console.log('Music toggle play failed:', error)
         }
       }
     }
-  }, [userInteracted, isPlaying, audioReady, initializeAudio])
+  }, [userInteracted, isPlaying, audioReady, handleUserInteraction])
 
   // Hide music hint after 8 seconds
   useEffect(() => {
@@ -778,7 +776,7 @@ export default function WeddingCelebrationArabic() {
   return (
     <div
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      className="relative min-h-screen overflow-x-hidden flex flex-col items-center justify-center text-center font-arabic bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-4 select-none"
+      className="relative min-h-screen overflow-x-hidden flex flex-col items-center justify-center text-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-4 select-none"
       onClick={handleUserInteraction}
       onTouchStart={handleUserInteraction}
       style={{
@@ -788,7 +786,7 @@ export default function WeddingCelebrationArabic() {
         userSelect: 'none',
       }}
     >
-      {/* Hidden Audio Element with iOS optimizations */}
+      {/* Hidden Audio Element with universal mobile optimizations */}
       <audio
         ref={audioRef}
         src={songs[currentSongIndex]}
@@ -825,21 +823,21 @@ export default function WeddingCelebrationArabic() {
       </motion.button>
 
       {/* Main Content Container */}
-      <div className="relative z-10 w-full max-w-lg mx-auto space-y-4 bg-white/40 backdrop-blur-lg rounded-2xl p-4 border border-white/30 shadow-lg mb-24">
+      <div className="relative z-10 w-full max-w-lg mx-auto space-y-4 mb-24">
         {/* Guest Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-4"
+          className="text-center mb-4 bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
         >
-          <motion.h3 className="text-lg text-rose-700/80 font-light mb-2">
+          <motion.h3 className="text-lg text-rose-700/90 font-light mb-2">
             {t.welcome}
           </motion.h3>
           <motion.h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
             {guestInfo?.name || t.guestName}
           </motion.h2>
           {guestInfo?.number && (
-            <motion.p className="text-rose-500/60 text-xs mt-1">
+            <motion.p className="text-rose-500/70 text-xs mt-2">
               #{guestInfo.number}
             </motion.p>
           )}
@@ -849,95 +847,87 @@ export default function WeddingCelebrationArabic() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-xl p-4 mb-4 bg-white/30 backdrop-blur-md border border-white/40"
+          className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
         >
-          <div className="relative z-10">
-            <motion.h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
-              {t.title}
-            </motion.h1>
-            <motion.p className="text-rose-700/90 text-sm font-light">
-              {t.quote}
-            </motion.p>
-          </div>
+          <motion.h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+            {t.title}
+          </motion.h1>
+          <motion.p className="text-rose-700/90 text-base font-light leading-relaxed">
+            {t.quote}
+          </motion.p>
         </motion.div>
 
         {/* Couple Section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative rounded-xl p-4 mb-4 bg-white/30 backdrop-blur-md border border-white/40"
+          className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
         >
-          <div className="relative z-10">
-            <motion.h2 className="text-xl text-rose-800 font-semibold mb-4 text-center">
-              <span className="block text-amber-600 mb-2 text-lg">{t.groom}</span>
-              <div className="text-2xl my-2 text-rose-500">💞</div>
-              <span className="block text-pink-600 mt-2 text-lg">{t.bride}</span>
-            </motion.h2>
-            <motion.p className="text-rose-700/90 text-sm leading-relaxed text-center italic">
-              {t.message}
-            </motion.p>
-          </div>
+          <motion.h2 className="text-2xl text-rose-800 font-semibold mb-6 text-center">
+            <span className="block text-amber-600 mb-3 text-xl">{t.groom}</span>
+            <div className="text-3xl my-4 text-rose-500">💞</div>
+            <span className="block text-pink-600 mt-3 text-xl">{t.bride}</span>
+          </motion.h2>
+          <motion.p className="text-rose-700/90 text-base leading-relaxed text-center italic">
+            {t.message}
+          </motion.p>
         </motion.div>
 
         {/* Countdown Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-xl p-4 mb-4 bg-white/30 backdrop-blur-md border border-white/40"
+          className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
         >
-          <h2 className="text-lg font-semibold text-rose-700 mb-3">
+          <h2 className="text-xl font-semibold text-rose-700 mb-6">
             {t.countdown}
           </h2>
           
           {!timeLeft.finished ? (
-            <div className="flex justify-center gap-2 flex-wrap">
+            <div className="flex justify-center gap-3 flex-wrap">
               {['days', 'hours', 'minutes', 'seconds'].map((key) => (
-                <div key={key} className="bg-white/50 backdrop-blur-sm rounded-lg px-3 py-2 min-w-[60px] border border-white/40">
-                  <p className="text-rose-600 text-xl font-bold">
+                <div key={key} className="bg-white/30 backdrop-blur-sm rounded-xl px-4 py-3 min-w-[70px] border border-white/40">
+                  <p className="text-rose-600 text-2xl font-bold">
                     {timeLeft[key] ?? '--'}
                   </p>
-                  <p className="text-rose-500/80 text-xs mt-1">
+                  <p className="text-rose-500/80 text-sm mt-1">
                     {t[key]}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <motion.p className="text-lg text-rose-600 font-semibold">
+            <motion.p className="text-xl text-rose-600 font-semibold">
               {t.finished}
             </motion.p>
           )}
         </motion.div>
 
         {/* Date & Location Sections */}
-        <div className="grid gap-4 mb-4">
+        <div className="grid gap-4">
           {/* Date Section */}
           <motion.div
-            className="relative rounded-xl p-4 bg-white/30 backdrop-blur-md border border-white/40"
+            className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
           >
-            <div className="relative z-10">
-              <FaClock className="text-2xl mb-2 text-amber-500 mx-auto" />
-              <div className="text-lg font-semibold text-amber-700 mb-1">
-                {t.date}
-              </div>
-              <div className="text-amber-600/90 text-sm">
-                {t.time}
-              </div>
+            <FaClock className="text-3xl mb-3 text-amber-500 mx-auto" />
+            <div className="text-xl font-semibold text-amber-700 mb-2">
+              {t.date}
+            </div>
+            <div className="text-amber-600/90 text-base">
+              {t.time}
             </div>
           </motion.div>
 
           {/* Venue Section */}
           <motion.div
-            className="relative rounded-xl p-4 bg-white/30 backdrop-blur-md border border-white/40"
+            className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
           >
-            <div className="relative z-10">
-              <FaMapMarkerAlt className="text-2xl mb-2 text-blue-500 mx-auto" />
-              <div className="text-base font-semibold text-blue-700 mb-1">
-                {t.location}
-              </div>
-              <div className="text-blue-600/80 text-xs">
-                {t.royalHall}
-              </div>
+            <FaMapMarkerAlt className="text-3xl mb-3 text-blue-500 mx-auto" />
+            <div className="text-lg font-semibold text-blue-700 mb-2">
+              {t.location}
+            </div>
+            <div className="text-blue-600/80 text-sm">
+              {t.royalHall}
             </div>
           </motion.div>
         </div>
@@ -946,26 +936,24 @@ export default function WeddingCelebrationArabic() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative rounded-xl p-4 bg-white/30 backdrop-blur-md border border-white/40"
+          className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 shadow-lg"
         >
-          <div className="relative z-10">
-            <motion.p className="text-rose-700/95 text-sm leading-loose text-center font-light italic">
-              {lang === 'ar' 
-                ? "في هذه الليلة المباركة، حيث تلتقي القلوب وتتحد الأرواح، نحتفل ببداية رحلة حب جديدة..."
-                : "In this blessed night, where hearts meet and souls unite, we celebrate the beginning of a new love journey..."
-              }
-            </motion.p>
-          </div>
+          <motion.p className="text-rose-700/95 text-base leading-loose text-center font-light italic">
+            {lang === 'ar' 
+              ? "في هذه الليلة المباركة، حيث تلتقي القلوب وتتحد الأرواح، نحتفل ببداية رحلة حب جديدة... رحلة تبدأ بوعود وتستمر بذكريات جميلة ترويها الأيام، وتنتهي بخلود في جنات النعيم"
+              : "In this blessed night, where hearts meet and souls unite, we celebrate the beginning of a new love journey... A journey that begins with promises and continues with beautiful memories told by the days, and ends with eternity in paradise"
+            }
+          </motion.p>
         </motion.div>
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl py-3 px-4 border-t border-rose-200/50 shadow-lg">
-        <div className="max-w-lg mx-auto flex justify-between items-center gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl py-4 px-6 border-t border-rose-200/50 shadow-2xl">
+        <div className="max-w-lg mx-auto flex justify-between items-center gap-4">
           {/* Music Control Button */}
           <motion.button
             onClick={toggleMusic}
-            className="flex-1 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-3 rounded-xl shadow-lg border border-white/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]"
+            className="flex-1 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-4 rounded-2xl shadow-xl border border-white/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-3 min-h-[52px]"
             whileTap={{ scale: 0.95 }}
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
@@ -973,9 +961,9 @@ export default function WeddingCelebrationArabic() {
               animate={{ rotate: isPlaying ? 360 : 0 }}
               transition={{ duration: isPlaying ? 2 : 0.3, repeat: isPlaying ? Infinity : 0 }}
             >
-              {isPlaying ? <FaPause className="text-sm" /> : <FaPlay className="text-sm" />}
+              {isPlaying ? <FaPause className="text-base" /> : <FaPlay className="text-base" />}
             </motion.div>
-            <span className="font-medium text-xs">
+            <span className="font-semibold text-sm">
               {isPlaying ? t.pauseMusic : t.playMusic}
             </span>
           </motion.button>
@@ -983,12 +971,12 @@ export default function WeddingCelebrationArabic() {
           {/* RSVP Button */}
           <motion.button
             onClick={() => setIsModalOpen(true)}
-            className="flex-1 bg-gradient-to-br from-rose-500 to-pink-500 text-white p-3 rounded-xl shadow-lg border border-white/20 font-bold active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]"
+            className="flex-1 bg-gradient-to-br from-rose-500 to-pink-500 text-white p-4 rounded-2xl shadow-xl border border-white/20 font-bold active:scale-95 transition-all duration-200 flex items-center justify-center gap-3 min-h-[52px]"
             whileTap={{ scale: 0.95 }}
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <span className="text-base">💌</span>
-            <span className="text-sm">{t.rsvp}</span>
+            <span className="text-lg">💌</span>
+            <span className="text-base">{t.rsvp}</span>
           </motion.button>
         </div>
       </div>
@@ -1000,13 +988,13 @@ export default function WeddingCelebrationArabic() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-16 left-4 z-50 bg-white/90 backdrop-blur-md text-rose-700 p-3 rounded-xl border border-rose-200 max-w-[280px] shadow-lg"
+            className="fixed bottom-20 left-4 z-50 bg-white/95 backdrop-blur-md text-rose-700 p-4 rounded-2xl border border-rose-200 max-w-[300px] shadow-xl"
           >
-            <div className="flex items-center gap-2">
-              <div className="text-base text-rose-500">🎵</div>
+            <div className="flex items-center gap-3">
+              <div className="text-lg text-rose-500">🎵</div>
               <div>
-                <p className="text-xs font-medium">{t.clickAnywhere}</p>
-                <p className="text-[10px] text-rose-500/70">{t.startMusic}</p>
+                <p className="text-sm font-semibold">{t.clickAnywhere}</p>
+                <p className="text-xs text-rose-500/70 mt-1">{t.startMusic}</p>
               </div>
             </div>
           </motion.div>
@@ -1017,16 +1005,16 @@ export default function WeddingCelebrationArabic() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="mt-4 mb-28 text-rose-600/80 text-xs text-center"
+        className="mt-6 mb-32 text-rose-600/80 text-sm text-center"
       >
-        <p className="font-light mb-2">
+        <p className="font-light mb-3 text-base">
           {t.finalMessage}
         </p>
-        <div className="flex justify-center gap-3 text-base">
+        <div className="flex justify-center gap-4 text-xl">
           {['💐', '🌹', '✨'].map((icon) => (
             <motion.span
               key={icon}
-              animate={{ scale: [1, 1.2, 1], y: [0, -2, 0] }}
+              animate={{ scale: [1, 1.2, 1], y: [0, -3, 0] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
               {icon}
