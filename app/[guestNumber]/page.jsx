@@ -3,9 +3,459 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FaClock, FaHeart, FaMapMarkerAlt, FaPause, FaPlay } from 'react-icons/fa'
-import RSVPModal from '../../components/RSVPModal'
+import { FaClock, FaMapMarkerAlt, FaPause, FaPlay } from 'react-icons/fa'
 
+// RSVP Modal Component
+function RSVPModal({ isOpen, onClose, guestNumber, guestName, currentResponse, lang }) {
+  const [name, setName] = useState('')
+  const [attending, setAttending] = useState(null)
+  const [guests, setGuests] = useState(1)
+  const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isUpdate, setIsUpdate] = useState(false)
+
+  // Translation texts
+  const translations = {
+    ar: {
+      title: 'هل ستشاركنا فرحتنا؟ 🎊',
+      updateTitle: 'تحديث الحضور ✨',
+      deadline: 'نرجو التأكد قبل ١٠ يونيو ٢٠٢٥',
+      updateDeadline: 'يمكنك تحديث معلومات الحضور',
+      specialInvitation: 'الدعوة خاصة بـ:',
+      fullName: 'الاسم الكامل *',
+      namePlaceholder: 'أدخل الاسم الكامل...',
+      attendanceQuestion: 'هل ستشاركنا الحفل؟ *',
+      yes: 'نعم!',
+      yesLabel: 'سأحضر بالتأكيد',
+      no: 'لا',
+      noLabel: 'معذرة، لن أتمكن',
+      guestsCount: 'عدد الضيوف',
+      guestsNote: 'يشمل العدد نفسك',
+      message: 'رسالة حب للعروسين 💌',
+      messagePlaceholder: 'اكتب رسالة حب أو تهنئة للعروسين...',
+      submit: 'تأكيد الحضور 🎉',
+      update: 'تحديث الحضور ✨',
+      submitting: 'جاري الإرسال... ⏳',
+      later: 'سأفكر لاحقاً 💫',
+      successTitle: 'شكراً جزيلاً! 🌹',
+      updateSuccessTitle: 'تم التحديث! ✨',
+      successMessage: 'تم تسجيل ردكم بنجاح',
+      updateSuccessMessage: 'تم تحديث ردكم بنجاح',
+      excitement: 'نترقب حضوركم بفارغ الصبر! 💖',
+      error: 'حدث خطأ في إرسال التأكيد:',
+      person: 'شخص',
+      people: 'أشخاص'
+    },
+    en: {
+      title: 'Will You Join Our Celebration? 🎊',
+      updateTitle: 'Update Attendance ✨',
+      deadline: 'Please confirm before June 10, 2025',
+      updateDeadline: 'You can update your attendance information',
+      specialInvitation: 'Special invitation for:',
+      fullName: 'Full Name *',
+      namePlaceholder: 'Enter your full name...',
+      attendanceQuestion: 'Will you attend the ceremony? *',
+      yes: 'Yes!',
+      yesLabel: "I'll definitely attend",
+      no: 'No',
+      noLabel: "Sorry, I can't make it",
+      guestsCount: 'Number of Guests',
+      guestsNote: 'Includes yourself',
+      message: 'Love Message for the Couple 💌',
+      messagePlaceholder: 'Write a love message or congratulations for the couple...',
+      submit: 'Confirm Attendance 🎉',
+      update: 'Update Attendance ✨',
+      submitting: 'Submitting... ⏳',
+      later: 'I will think later 💫',
+      successTitle: 'Thank You! 🌹',
+      updateSuccessTitle: 'Updated! ✨',
+      successMessage: 'Your response has been recorded successfully',
+      updateSuccessMessage: 'Your response has been updated successfully',
+      excitement: "We're excited to see you! 💖",
+      error: 'Error submitting RSVP:',
+      person: 'person',
+      people: 'people'
+    }
+  }
+
+  const t = translations[lang]
+  const isRTL = lang === 'ar'
+
+  // Initialize form with current response if available
+  useEffect(() => {
+    if (currentResponse) {
+      setAttending(currentResponse.attending ? 'yes' : 'no')
+      setGuests(currentResponse.guestsCount || 1)
+      setMessage(currentResponse.message || '')
+      setIsUpdate(true)
+    } else {
+      setAttending(null)
+      setGuests(1)
+      setMessage('')
+      setIsUpdate(false)
+    }
+    
+    if (guestName) {
+      setName(guestName)
+    }
+  }, [currentResponse, guestName])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!name || !attending) return
+
+    setIsSubmitting(true)
+    
+    try {
+      const rsvpData = {
+        name,
+        attending: attending === 'yes',
+        guestsCount: attending === 'yes' ? guests : 0,
+        message
+      }
+
+      let response
+      
+      if (guestNumber) {
+        response = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...rsvpData,
+            guestNumber
+          }),
+        })
+      } else {
+        response = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(rsvpData),
+        })
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to submit RSVP')
+      }
+
+      setIsSubmitted(true)
+      setTimeout(() => {
+        onClose()
+        setIsSubmitted(false)
+        resetForm()
+      }, 3000)
+    } catch (error) {
+      console.error('Error submitting RSVP:', error)
+      alert(`${t.error} ${error.message}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const resetForm = () => {
+    setName('')
+    setAttending(null)
+    setGuests(1)
+    setMessage('')
+    setIsUpdate(false)
+  }
+
+  const handleClose = () => {
+    resetForm()
+    onClose()
+  }
+
+  const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          onClick={handleClose}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.8, opacity: 0, y: 50 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto border border-white/60"
+            onClick={(e) => e.stopPropagation()}
+            dir={isRTL ? 'rtl' : 'ltr'}
+          >
+            {/* Elegant Border Effect */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-rose-100/50 to-pink-100/50 p-[1px] -z-10">
+              <div className="w-full h-full rounded-3xl bg-transparent"></div>
+            </div>
+
+            {isSubmitted ? (
+              <div className="p-6 text-center relative z-10">
+                {/* Success Animation */}
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
+                >
+                  <motion.svg 
+                    className="w-10 h-10 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </motion.svg>
+                </motion.div>
+                
+                {/* Success Text */}
+                <motion.h3
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-4"
+                >
+                  {isUpdate ? t.updateSuccessTitle : t.successTitle}
+                </motion.h3>
+                
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-gray-700 text-base mb-6 leading-relaxed"
+                >
+                  {isUpdate ? t.updateSuccessMessage : t.successMessage}
+                </motion.p>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                  className="bg-gradient-to-r from-emerald-50 to-green-50 px-4 py-3 rounded-2xl border border-emerald-200 inline-flex items-center gap-2 shadow-sm"
+                >
+                  <span className="text-xl">💖</span>
+                  <span className="text-emerald-700 font-semibold text-sm">
+                    {t.excitement}
+                  </span>
+                </motion.div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="p-4 relative z-10">
+                {/* Header Section */}
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                    {isUpdate ? t.updateTitle : t.title}
+                  </h2>
+                  
+                  <p className="text-gray-600 text-sm mb-4">
+                    {isUpdate ? t.updateDeadline : t.deadline}
+                  </p>
+                  
+                  {guestName && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-3 shadow-sm mb-4"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="text-xl text-blue-500">👑</div>
+                        <div className="text-center">
+                          <p className="text-blue-700 font-semibold text-xs">{t.specialInvitation}</p>
+                          <p className="text-blue-800 font-bold text-sm">{guestName}</p>
+                        </div>
+                        <div className="text-xl text-blue-400">💫</div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  {/* Name Input */}
+                  {!guestName && (
+                    <motion.div
+                      initial={{ opacity: 0, x: isRTL ? 30 : -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t.fullName}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full px-4 py-3 bg-white/80 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-rose-300 focus:border-rose-300 transition-all duration-300 text-base shadow-sm"
+                          placeholder={t.namePlaceholder}
+                          dir={isRTL ? 'rtl' : 'ltr'}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Attendance Selection */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isRTL ? 30 : -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      {t.attendanceQuestion}
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Yes Button */}
+                      <motion.button
+                        type="button"
+                        onClick={() => setAttending('yes')}
+                        whileTap={{ scale: 0.95 }}
+                        className={`p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden ${
+                          attending === 'yes' 
+                            ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50 text-emerald-700 shadow-lg' 
+                            : 'border-gray-200 bg-white/80 hover:border-emerald-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="relative z-10">
+                          <div className="text-2xl mb-1">🎉</div>
+                          <div className="font-bold text-base">{t.yes}</div>
+                          <div className="text-xs text-gray-600">{t.yesLabel}</div>
+                        </div>
+                      </motion.button>
+
+                      {/* No Button */}
+                      <motion.button
+                        type="button"
+                        onClick={() => setAttending('no')}
+                        whileTap={{ scale: 0.95 }}
+                        className={`p-4 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden ${
+                          attending === 'no' 
+                            ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 text-amber-700 shadow-lg' 
+                            : 'border-gray-200 bg-white/80 hover:border-amber-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="relative z-10">
+                          <div className="text-2xl mb-1">💫</div>
+                          <div className="font-bold text-base">{t.no}</div>
+                          <div className="text-xs text-gray-600">{t.noLabel}</div>
+                        </div>
+                      </motion.button>
+                    </div>
+                  </motion.div>
+
+                  {/* Number of Guests */}
+                  {attending === 'yes' && (
+                    <motion.div
+                      initial={{ opacity: 0, x: isRTL ? 30 : -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t.guestsCount}
+                      </label>
+                      <select
+                        value={guests}
+                        onChange={(e) => setGuests(Number(e.target.value))}
+                        className="w-full px-4 py-3 bg-white/80 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-rose-300 focus:border-rose-300 transition-all duration-300 shadow-sm appearance-none"
+                        dir={isRTL ? 'rtl' : 'ltr'}
+                      >
+                        {guestOptions.map(num => (
+                          <option key={num} value={num}>
+                            {num} {num === 1 ? t.person : t.people}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t.guestsNote}
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* Message */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isRTL ? 30 : -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t.message}
+                    </label>
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-white/80 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-rose-300 focus:border-rose-300 transition-all duration-300 resize-none shadow-sm"
+                      placeholder={t.messagePlaceholder}
+                      dir={isRTL ? 'rtl' : 'ltr'}
+                    />
+                  </motion.div>
+
+                  {/* Action Buttons */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="space-y-2"
+                  >
+                    {/* Submit Button */}
+                    <motion.button
+                      type="submit"
+                      disabled={!name || !attending || isSubmitting}
+                      whileTap={(!isSubmitting && name && attending) ? { scale: 0.98 } : {}}
+                      className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-4 rounded-2xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg relative overflow-hidden group"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        {isSubmitting ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                            />
+                            {t.submitting}
+                          </>
+                        ) : (
+                          <>
+                            <span>{isUpdate ? '✨' : '🎉'}</span>
+                            {isUpdate ? t.update : t.submit}
+                          </>
+                        )}
+                      </span>
+                    </motion.button>
+
+                    {/* Later Button */}
+                    <motion.button
+                      type="button"
+                      onClick={handleClose}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full text-gray-600 py-3 rounded-2xl font-medium hover:text-gray-700 hover:bg-gray-50/80 transition-all duration-200 border border-gray-300 shadow-sm"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <span>💫</span>
+                        {t.later}
+                      </span>
+                    </motion.button>
+                  </motion.div>
+                </div>
+              </form>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// Main Wedding Component
 export default function WeddingCelebrationArabic() {
   const params = useParams()
   const guestNumber = params?.guestNumber
@@ -29,10 +479,20 @@ export default function WeddingCelebrationArabic() {
 
   // Detect iOS on component mount
   useEffect(() => {
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window ).MSStream
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     setIsIOS(iOS)
-    console.log('iOS detected:', iOS)
   }, [])
+  // Auto-open modal after 30 seconds
+useEffect(() => {
+  if (!isLoaded) return
+
+  const timer = setTimeout(() => {
+    console.log('Auto-opening RSVP modal after 30 seconds')
+    setIsModalOpen(true)
+  }, 30000) // 30 seconds = 30000 milliseconds
+
+  return () => clearTimeout(timer)
+}, [isLoaded])
 
   // Countdown logic
   useEffect(() => {
@@ -61,21 +521,6 @@ export default function WeddingCelebrationArabic() {
   const songs = useMemo(() => ['/music/song1.mp3'], [])
 
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
-
-  // High-quality background images with better resolution
-  const backgrounds = useMemo(() => ['/w3.jpg', '/w2.jpg'], [])
-
-  // Section background images
-  const sectionBackgrounds = useMemo(
-    () => ({
-      header: '/h1.jpg',
-      couple: '/h2.jpg',
-      date: '/h3.jpg',
-      venue: '/h4.jpg',
-      quote: '/h5.jpg',
-    }),
-    [],
-  )
 
   // Translation texts
   const t = useMemo(() => ({
@@ -139,23 +584,6 @@ export default function WeddingCelebrationArabic() {
     },
   }[lang]), [lang])
 
-  // iOS-specific audio fallback
-  const handleIOSAudioFallback = useCallback(() => {
-    console.log('Attempting iOS audio fallback...')
-    const iosAudio = new Audio(songs[currentSongIndex])
-    iosAudio.preload = 'auto'
-    iosAudio.volume = 0.7
-    iosAudio.playsInline = true
-    
-    iosAudio.play().then(() => {
-      console.log('iOS fallback audio started successfully')
-      setIsPlaying(true)
-      audioRef.current = iosAudio
-    }).catch(error => {
-      console.log('iOS fallback also failed:', error)
-    })
-  }, [songs, currentSongIndex])
-
   // Enhanced user interaction handler for iOS
   const handleUserInteraction = useCallback((e) => {
     if (e) {
@@ -166,56 +594,36 @@ export default function WeddingCelebrationArabic() {
       setUserInteracted(true)
       setShowMusicHint(false)
       
-      // iOS-specific audio play
       if (audioRef.current && audioReady) {
         const playPromise = audioRef.current.play()
         
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log('Audio started successfully on iOS')
               setIsPlaying(true)
               if (audioRef.current) {
                 audioRef.current.volume = 0.7
               }
             })
             .catch((error) => {
-              console.log('iOS Audio play failed, trying fallback:', error)
-              handleIOSAudioFallback()
+              console.log('Audio play failed:', error)
             })
         }
-      } else if (!audioReady) {
-        console.log('Audio not ready yet, will retry...')
-        // Audio might not be ready, we'll rely on the toggle button
       }
     }
-  }, [userInteracted, audioReady, handleIOSAudioFallback])
-
-  // Touch-specific handler for iOS
-  const handleTouchStart = useCallback((e) => {
-    e.preventDefault()
-    handleUserInteraction()
-  }, [handleUserInteraction])
+  }, [userInteracted, audioReady])
 
   // Enhanced audio initialization
   useEffect(() => {
     const initializeAudio = () => {
       if (audioRef.current) {
-        // iOS requires specific settings
         audioRef.current.preload = 'auto'
         audioRef.current.playsInline = true
         audioRef.current.setAttribute('webkit-playsinline', 'true')
         audioRef.current.setAttribute('playsinline', 'true')
-        
-        // Set volume to 0 initially for iOS
         audioRef.current.volume = 0.5
-        
-        // Force load on iOS
         audioRef.current.load()
         
-        console.log('Audio initialized for iOS:', isIOS)
-        
-        // Mark audio as ready after a short delay
         setTimeout(() => {
           setAudioReady(true)
         }, 1000)
@@ -231,30 +639,24 @@ export default function WeddingCelebrationArabic() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch wedding settings
         const settingsResponse = await fetch('/api/settings')
         if (settingsResponse.ok) {
           const settings = await settingsResponse.json()
           setWeddingSettings(settings)
         }
 
-        // Fetch guest info if number is provided
         if (guestNumber) {
           const guestResponse = await fetch(`/api/guests/${guestNumber}`)
           if (guestResponse.ok) {
             const guestData = await guestResponse.json()
             setGuestInfo(guestData)
           } else {
-            // Set default guest info if not found
             setGuestInfo({ name: t.guestName, number: guestNumber })
           }
         } else {
-          // Set default guest info
           setGuestInfo({ name: t.guestName, number: '000' })
         }
       } catch (error) {
-        console.error('Error fetching data:', error)
-        // Set defaults on error
         setGuestInfo({ name: t.guestName, number: guestNumber || '000' })
       }
     }
@@ -264,84 +666,21 @@ export default function WeddingCelebrationArabic() {
     }
   }, [isLoaded, guestNumber, t.guestName])
 
-  // Enhanced preload function for iOS compatibility
+  // Preload function
   const preloadAssets = useCallback(async () => {
-    const allImages = [...backgrounds, ...Object.values(sectionBackgrounds)]
-
-    const imagePromises = allImages.map((src) => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.src = src
-        img.onload = resolve
-        img.onerror = () => {
-          console.warn(`Failed to load image: ${src}`)
-          resolve()
-        }
-      })
-    })
-
-    // iOS-specific audio preloading
-    const audioPromise = new Promise((resolve) => {
-      if (songs[0]) {
-        const audio = new Audio()
-        audio.src = songs[0]
-        audio.preload = 'auto'
-        audio.playsInline = true
-        
-        // iOS requires this event
-        audio.oncanplaythrough = () => {
-          console.log('Audio can play through on iOS')
-          resolve(true)
-        }
-        
-        audio.onerror = (e) => {
-          console.warn('Audio preload error on iOS:', e)
-          resolve(false)
-        }
-        
-        // Force load on iOS
-        audio.load()
-        
-        // Fallback timeout for iOS
-        setTimeout(() => resolve(true), 1500)
-      } else {
-        resolve(true)
-      }
-    })
-
     try {
-      await Promise.all([...imagePromises, audioPromise])
-      console.log('All assets preloaded successfully')
+      // Simple loading simulation
+      await new Promise(resolve => setTimeout(resolve, 1500))
       setIsLoaded(true)
     } catch (error) {
-      console.error('Error preloading assets:', error)
-      setIsLoaded(true) // Still continue even if some assets fail
+      setIsLoaded(true)
     }
-  }, [backgrounds, sectionBackgrounds, songs])
+  }, [])
 
   // Preload all assets
   useEffect(() => {
     preloadAssets()
   }, [preloadAssets])
-
-  // Smooth background rotation
-  useEffect(() => {
-    if (!isLoaded) return
-
-    const interval = setInterval(() => {
-      setCurrentBg((prev) => (prev + 1) % backgrounds.length)
-    }, 15000)
-
-    return () => clearInterval(interval)
-  }, [backgrounds.length, isLoaded])
-
-  // Auto-open modal after 20 seconds
-  useEffect(() => {
-    if (!isLoaded) return
-
-    const timer = setTimeout(() => setIsModalOpen(true), 20000)
-    return () => clearTimeout(timer)
-  }, [isLoaded])
 
   // Enhanced music control functions
   const toggleMusic = useCallback((e) => {
@@ -360,7 +699,6 @@ export default function WeddingCelebrationArabic() {
         audioRef.current.pause()
         setIsPlaying(false)
       } else {
-        // iOS-specific play handling
         const playPromise = audioRef.current.play()
         
         if (playPromise !== undefined) {
@@ -369,31 +707,12 @@ export default function WeddingCelebrationArabic() {
               setIsPlaying(true)
             })
             .catch((error) => {
-              console.log('iOS toggle play failed:', error)
-              handleIOSAudioFallback()
+              console.log('Audio play failed:', error)
             })
         }
       }
-    } else if (!audioReady) {
-      console.log('Audio not ready, initializing...')
-      handleUserInteraction()
     }
-  }, [userInteracted, isPlaying, audioReady, handleIOSAudioFallback, handleUserInteraction])
-
-  const handleNextSong = useCallback(() => {
-    setCurrentSongIndex((prevIndex) => (prevIndex + 1) % songs.length)
-    if (isPlaying) {
-      setTimeout(() => {
-        audioRef.current?.play().catch(error => {
-          console.log('Next song play failed:', error)
-        })
-      }, 100)
-    }
-  }, [songs.length, isPlaying])
-
-  const handleSongEnd = useCallback(() => {
-    handleNextSong()
-  }, [handleNextSong])
+  }, [userInteracted, isPlaying, audioReady])
 
   // Hide music hint after 8 seconds
   useEffect(() => {
@@ -404,76 +723,14 @@ export default function WeddingCelebrationArabic() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Optimized heart animation - pulsing hearts with good performance
-  const HeartAnimation = useCallback(() => {
-    const heartPositions = useMemo(
-      () => [
-        { x: 10, y: 15, delay: 0, size: 'text-lg' },
-        { x: 85, y: 20, delay: 1, size: 'text-xl' },
-        { x: 25, y: 70, delay: 2, size: 'text-sm' },
-        { x: 75, y: 65, delay: 3, size: 'text-md' },
-        { x: 50, y: 10, delay: 0.5, size: 'text-lg' },
-        { x: 15, y: 85, delay: 1.5, size: 'text-sm' },
-        { x: 90, y: 75, delay: 2.5, size: 'text-md' },
-        { x: 40, y: 40, delay: 0.8, size: 'text-xl' },
-      ],
-      [],
-    )
-
-    return (
-      <>
-        {heartPositions.map((pos, i) => (
-          <motion.div
-            key={i}
-            className={`absolute ${pos.size} z-2 pointer-events-none`}
-            style={{
-              left: `${pos.x}%`,
-              top: `${pos.y}%`,
-            }}
-            animate={{
-              scale: [0.8, 1.2, 0.8],
-              opacity: [0.3, 0.8, 0.3],
-              rotate: [0, 10, -10, 0],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 2,
-              delay: pos.delay,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <FaHeart
-              className={`
-                ${i % 4 === 0 ? 'text-rose-300' : 
-                  i % 4 === 1 ? 'text-pink-300' : 
-                  i % 4 === 2 ? 'text-yellow-300' : 'text-purple-300'}
-                drop-shadow-lg filter brightness-110
-              `}
-            />
-          </motion.div>
-        ))}
-      </>
-    )
-  }, [])
-
   // Show elegant loading state
   if (!isLoaded) {
     return (
-      <div 
-        className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-red-900 flex items-center justify-center"
-        style={{
-          WebkitTransform: 'translate3d(0,0,0)',
-          transform: 'translate3d(0,0,0)'
-        }}
-      >
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
-          style={{
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
-          }}
         >
           <motion.div
             animate={{
@@ -485,7 +742,7 @@ export default function WeddingCelebrationArabic() {
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className="text-6xl text-white mb-6"
+            className="text-6xl text-rose-400 mb-6"
           >
             💍
           </motion.div>
@@ -493,7 +750,7 @@ export default function WeddingCelebrationArabic() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="text-3xl text-white font-arabic mb-4 font-light"
+            className="text-2xl text-rose-600 font-arabic mb-4 font-light"
           >
             {t.loading}
           </motion.h2>
@@ -501,18 +758,10 @@ export default function WeddingCelebrationArabic() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="text-white/70 text-lg font-arabic"
+            className="text-rose-500/70 text-base font-arabic"
           >
             {t.preparing}
           </motion.p>
-          <motion.div className="mt-6 w-48 h-1 bg-white/30 rounded-full mx-auto overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-yellow-400 to-pink-400"
-              initial={{ width: '0%' }}
-              animate={{ width: '100%' }}
-              transition={{ duration: 3, ease: 'easeInOut' }}
-            />
-          </motion.div>
         </motion.div>
       </div>
     )
@@ -521,76 +770,28 @@ export default function WeddingCelebrationArabic() {
   return (
     <div
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-center font-arabic bg-black px-4 py-4 select-none"
+      className="relative min-h-screen overflow-x-hidden flex flex-col items-center justify-center text-center font-arabic bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-4 select-none"
       onClick={handleUserInteraction}
-      onTouchStart={handleTouchStart}
-      onKeyDown={handleUserInteraction}
-      role="button"
-      tabIndex={0}
       style={{
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
-        KhtmlUserSelect: 'none',
-        MozUserSelect: 'none',
-        msUserSelect: 'none',
         userSelect: 'none',
-        WebkitTransform: 'translate3d(0,0,0)',
-        transform: 'translate3d(0,0,0)'
       }}
     >
-      {/* Hidden Audio Element with iOS optimizations */}
+      {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
         src={songs[currentSongIndex]}
-        onEnded={handleSongEnd}
         loop={false}
         preload="auto"
         playsInline
         crossOrigin="anonymous"
-        onLoadedMetadata={() => {
-          console.log('Audio metadata loaded')
-          setAudioReady(true)
-        }}
-        onError={(e) => {
-          console.error('Audio error:', e)
-        }}
+        onLoadedMetadata={() => setAudioReady(true)}
       />
 
-      {/* Optimized Background Images */}
-      <div className="absolute inset-0">
-        {backgrounds.map((bg, i) => (
-          <motion.div
-            key={i}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url(${bg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center 35%',
-              filter: 'brightness(0.8) contrast(1.1)',
-            }}
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: currentBg === i ? 1 : 0,
-              scale: currentBg === i ? 1 : 1.03,
-            }}
-            transition={{
-              duration: 3,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-
-        {/* Enhanced Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/40 to-black/85"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 mix-blend-soft-light"></div>
-        
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)] z-0" />
-      </div>
-
-      {/* Heart Animation Component */}
-      <HeartAnimation />
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.1)_0%,transparent_50%)]"></div>
 
       {/* Language Switch Button */}
       <motion.button
@@ -598,323 +799,184 @@ export default function WeddingCelebrationArabic() {
           e.stopPropagation()
           setLang(lang === 'ar' ? 'en' : 'ar')
         }}
-        className="fixed top-6 left-6 z-50 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm hover:bg-white/30 transition-all duration-300 border border-white/30 font-medium"
-        whileHover={{ scale: 1.05 }}
+        className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-md text-rose-600 px-3 py-2 rounded-full text-xs hover:bg-white transition-all duration-300 border border-rose-200 font-medium shadow-sm"
         whileTap={{ scale: 0.95 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
-        style={{
-          WebkitTapHighlightColor: 'transparent'
-        }}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         {t.switch}
       </motion.button>
 
       {/* Main Content Container */}
-      <AnimatePresence mode="wait">
+      <div className="relative z-10 w-full max-w-lg mx-auto space-y-4 bg-white/60 backdrop-blur-lg rounded-2xl p-4 border border-white/40 shadow-lg mb-24">
+        {/* Guest Welcome Section */}
         <motion.div
-          key={lang}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
-          className="relative z-10 w-full max-w-4xl mx-auto space-y-6 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-            WebkitTransform: 'translate3d(0,0,0)',
-            transform: 'translate3d(0,0,0)'
-          }}
+          className="text-center mb-4"
         >
-          {/* Guest Welcome Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-center mb-4"
-          >
-            <motion.h3
-              className="text-xl text-white/80 font-light mb-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              {t.welcome}
-            </motion.h3>
-            <motion.h2
-              className="text-3xl font-bold bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.7, type: 'spring' }}
-            >
-              {guestInfo?.name || t.guestName}
-            </motion.h2>
-            {guestInfo?.number && (
-              <motion.p
-                className="text-white/60 text-sm mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-              >
-                #{guestInfo.number}
-              </motion.p>
-            )}
-          </motion.div>
-
-          {/* Header Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="relative rounded-2xl p-6 mb-6 overflow-hidden"
-            style={{
-              backgroundImage: `url(${sectionBackgrounds.header})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <div className="absolute inset-0 bg-black/50 rounded-2xl"></div>
-            <div className="relative z-10">
-              <motion.h1
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.8, type: 'spring' }}
-                className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 bg-clip-text text-transparent font-elegant"
-              >
-                {t.title}
-              </motion.h1>
-              <motion.div
-                className="h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent rounded-full w-48 mx-auto my-4"
-                initial={{ width: 0 }}
-                animate={{ width: 192 }}
-                transition={{ delay: 0.8, duration: 1 }}
-              />
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="text-white/90 text-lg font-light"
-              >
-                {t.quote}
-              </motion.p>
-            </div>
-          </motion.div>
-
-          {/* Couple Section */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="relative rounded-2xl p-6 mb-6 overflow-hidden"
-            style={{
-              backgroundImage: `url(${sectionBackgrounds.couple})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <div className="absolute inset-0 bg-purple-900/60 rounded-2xl"></div>
-            <div className="relative z-10">
-              <motion.h2
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="text-2xl md:text-3xl text-white font-semibold mb-6 text-center"
-              >
-                <span className="block text-yellow-200 mb-3 text-3xl">
-                  {t.groom}
-                </span>
-                <motion.div
-                  className="text-4xl my-4"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    repeatType: 'reverse',
-                  }}
-                >
-                  💞
-                </motion.div>
-                <span className="block text-pink-200 mt-3 text-3xl">
-                  {t.bride}
-                </span>
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="text-white/90 text-lg leading-relaxed text-center italic font-light"
-              >
-                {t.message}
-              </motion.p>
-            </div>
-          </motion.div>
-
-          {/* Countdown Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="relative rounded-2xl p-6 mb-6 bg-gradient-to-br from-rose-900/70 to-purple-900/70 backdrop-blur-sm border border-white/20"
-          >
-            <h2 className="text-xl md:text-2xl font-semibold text-rose-300 mb-4">
-              {t.countdown}
-            </h2>
-            
-            {!timeLeft.finished ? (
-              <div className="flex justify-center gap-3 flex-wrap">
-                {['days', 'hours', 'minutes', 'seconds'].map((key) => (
-                  <div
-                    key={key}
-                    className="bg-white/15 rounded-xl px-4 py-3 min-w-[70px] backdrop-blur-sm border border-white/10"
-                  >
-                    <p className="text-rose-300 text-2xl font-bold">
-                      {timeLeft[key] ?? '--'}
-                    </p>
-                    <p className="text-sm text-white/80 mt-1 font-light">
-                      {t[key]}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <motion.p
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                className="text-xl text-rose-400 font-semibold"
-              >
-                {t.finished}
-              </motion.p>
-            )}
-          </motion.div>
-
-          {/* Date & Location Sections */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1 }}
-            className="grid md:grid-cols-2 gap-6 mb-6"
-          >
-            {/* Date Section */}
-            <motion.div
-              className="relative rounded-2xl p-6 overflow-hidden"
-              style={{
-                backgroundImage: `url(${sectionBackgrounds.date})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <div className="absolute inset-0 bg-orange-900/60 rounded-2xl"></div>
-              <div className="relative z-10">
-                <FaClock className="text-3xl mb-3 text-yellow-300 mx-auto" />
-                <div className="text-xl md:text-2xl font-semibold text-yellow-200 mb-2">
-                  {t.date}
-                </div>
-                <div className="text-white/90 text-lg font-light">
-                  {t.time}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Venue Section */}
-            <motion.div
-              className="relative rounded-2xl p-6 overflow-hidden"
-              style={{
-                backgroundImage: `url(${sectionBackgrounds.venue})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <div className="absolute inset-0 bg-purple-900/60 rounded-2xl"></div>
-              <div className="relative z-10">
-                <FaMapMarkerAlt className="text-3xl mb-3 text-purple-300 mx-auto" />
-                <div className="text-lg md:text-xl font-semibold text-purple-200 mb-2">
-                  {t.location}
-                </div>
-                <div className="text-white/80 text-base font-light">
-                  {t.royalHall}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Central Heart Animation */}
-          <motion.div
-            className="my-8 flex justify-center"
-            animate={{
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              repeatType: 'reverse',
-            }}
-          >
-            <FaHeart className="text-6xl text-rose-400 drop-shadow-lg" />
-          </motion.div>
-
-          {/* Final Quote Section */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.3 }}
-            className="relative rounded-2xl p-6 overflow-hidden"
-            style={{
-              backgroundImage: `url(${sectionBackgrounds.quote})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <div className="absolute inset-0 bg-pink-900/50 rounded-2xl"></div>
-            <div className="relative z-10">
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.5 }}
-                className="text-white/95 text-lg leading-loose text-center font-light italic"
-              >
-                {lang === 'ar' 
-                  ? "في هذه الليلة المباركة، حيث تلتقي القلوب وتتحد الأرواح، نحتفل ببداية رحلة حب جديدة... رحلة تبدأ بوعود وتستمر بذكريات جميلة ترويها الأيام، وتنتهي بخلود في جنات النعيم"
-                  : "In this blessed night, where hearts meet and souls unite, we celebrate the beginning of a new love journey... A journey that begins with promises and continues with beautiful memories told by the days, and ends with eternity in paradise"
-                }
-              </motion.p>
-            </div>
-          </motion.div>
+          <motion.h3 className="text-lg text-rose-700/80 font-light mb-2">
+            {t.welcome}
+          </motion.h3>
+          <motion.h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+            {guestInfo?.name || t.guestName}
+          </motion.h2>
+          {guestInfo?.number && (
+            <motion.p className="text-rose-500/60 text-xs mt-1">
+              #{guestInfo.number}
+            </motion.p>
+          )}
         </motion.div>
-      </AnimatePresence>
 
-      {/* Music Control Button */}
-      <motion.button
-        onClick={toggleMusic}
-        className="fixed bottom-6 left-6 z-50 bg-gradient-to-br from-purple-600 to-pink-600 text-white p-3 rounded-xl shadow-xl border border-white/20 hover:scale-105 transition-all duration-300 backdrop-blur-sm"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.8 }}
-        style={{
-          WebkitTapHighlightColor: 'transparent'
-        }}
-      >
-        <div className="flex items-center gap-2">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative rounded-xl p-4 mb-4 bg-gradient-to-br from-rose-50/80 to-pink-50/80 backdrop-blur-sm border border-rose-200/50"
+        >
+          <div className="relative z-10">
+            <motion.h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+              {t.title}
+            </motion.h1>
+            <motion.p className="text-rose-700/90 text-sm font-light">
+              {t.quote}
+            </motion.p>
+          </div>
+        </motion.div>
+
+        {/* Couple Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative rounded-xl p-4 mb-4 bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm border border-purple-200/50"
+        >
+          <div className="relative z-10">
+            <motion.h2 className="text-xl text-rose-800 font-semibold mb-4 text-center">
+              <span className="block text-amber-600 mb-2 text-lg">{t.groom}</span>
+              <div className="text-2xl my-2 text-rose-500">💞</div>
+              <span className="block text-pink-600 mt-2 text-lg">{t.bride}</span>
+            </motion.h2>
+            <motion.p className="text-rose-700/90 text-sm leading-relaxed text-center italic">
+              {t.message}
+            </motion.p>
+          </div>
+        </motion.div>
+
+        {/* Countdown Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative rounded-xl p-4 mb-4 bg-gradient-to-br from-rose-100/80 to-pink-100/80 backdrop-blur-sm border border-rose-300/50"
+        >
+          <h2 className="text-lg font-semibold text-rose-700 mb-3">
+            {t.countdown}
+          </h2>
+          
+          {!timeLeft.finished ? (
+            <div className="flex justify-center gap-2 flex-wrap">
+              {['days', 'hours', 'minutes', 'seconds'].map((key) => (
+                <div key={key} className="bg-white/60 backdrop-blur-sm rounded-lg px-3 py-2 min-w-[60px] border border-rose-200/50">
+                  <p className="text-rose-600 text-xl font-bold">
+                    {timeLeft[key] ?? '--'}
+                  </p>
+                  <p className="text-rose-500/80 text-xs mt-1">
+                    {t[key]}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <motion.p className="text-lg text-rose-600 font-semibold">
+              {t.finished}
+            </motion.p>
+          )}
+        </motion.div>
+
+        {/* Date & Location Sections */}
+        <div className="grid gap-4 mb-4">
+          {/* Date Section */}
           <motion.div
-            animate={{
-              rotate: isPlaying ? 360 : 0,
-            }}
-            transition={{
-              duration: isPlaying ? 2 : 0.3,
-              repeat: isPlaying ? Infinity : 0,
-            }}
+            className="relative rounded-xl p-4 bg-gradient-to-br from-amber-50/80 to-orange-50/80 backdrop-blur-sm border border-amber-200/50"
           >
-            {isPlaying ? <FaPause /> : <FaPlay />}
+            <div className="relative z-10">
+              <FaClock className="text-2xl mb-2 text-amber-500 mx-auto" />
+              <div className="text-lg font-semibold text-amber-700 mb-1">
+                {t.date}
+              </div>
+              <div className="text-amber-600/90 text-sm">
+                {t.time}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Venue Section */}
+          <motion.div
+            className="relative rounded-xl p-4 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm border border-blue-200/50"
+          >
+            <div className="relative z-10">
+              <FaMapMarkerAlt className="text-2xl mb-2 text-blue-500 mx-auto" />
+              <div className="text-base font-semibold text-blue-700 mb-1">
+                {t.location}
+              </div>
+              <div className="text-blue-600/80 text-xs">
+                {t.royalHall}
+              </div>
+            </div>
           </motion.div>
         </div>
-      </motion.button>
+
+        {/* Final Quote Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative rounded-xl p-4 bg-gradient-to-br from-pink-50/80 to-rose-50/80 backdrop-blur-sm border border-pink-200/50"
+        >
+          <div className="relative z-10">
+            <motion.p className="text-rose-700/95 text-sm leading-loose text-center font-light italic">
+              {lang === 'ar' 
+                ? "في هذه الليلة المباركة، حيث تلتقي القلوب وتتحد الأرواح، نحتفل ببداية رحلة حب جديدة..."
+                : "In this blessed night, where hearts meet and souls unite, we celebrate the beginning of a new love journey..."
+              }
+            </motion.p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Sticky Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl py-3 px-4 border-t border-rose-200/50 shadow-lg">
+        <div className="max-w-lg mx-auto flex justify-between items-center gap-3">
+          {/* Music Control Button */}
+          <motion.button
+            onClick={toggleMusic}
+            className="flex-1 bg-gradient-to-br from-purple-500 to-pink-500 text-white p-3 rounded-xl shadow-lg border border-white/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]"
+            whileTap={{ scale: 0.95 }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            <motion.div
+              animate={{ rotate: isPlaying ? 360 : 0 }}
+              transition={{ duration: isPlaying ? 2 : 0.3, repeat: isPlaying ? Infinity : 0 }}
+            >
+              {isPlaying ? <FaPause className="text-sm" /> : <FaPlay className="text-sm" />}
+            </motion.div>
+            <span className="font-medium text-xs">
+              {isPlaying ? t.pauseMusic : t.playMusic}
+            </span>
+          </motion.button>
+
+          {/* RSVP Button */}
+          <motion.button
+            onClick={() => setIsModalOpen(true)}
+            className="flex-1 bg-gradient-to-br from-rose-500 to-pink-500 text-white p-3 rounded-xl shadow-lg border border-white/20 font-bold active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]"
+            whileTap={{ scale: 0.95 }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            <span className="text-base">💌</span>
+            <span className="text-sm">{t.rsvp}</span>
+          </motion.button>
+        </div>
+      </div>
 
       {/* Music Hint */}
       <AnimatePresence>
@@ -923,87 +985,42 @@ export default function WeddingCelebrationArabic() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-20 z-50 bg-black/80 backdrop-blur-md text-white p-3 rounded-xl border border-white/20 max-w-xs"
-            style={{
-              WebkitTransform: 'translate3d(0,0,0)',
-              transform: 'translate3d(0,0,0)'
-            }}
+            className="fixed bottom-16 left-4 z-50 bg-white/90 backdrop-blur-md text-rose-700 p-3 rounded-xl border border-rose-200 max-w-[280px] shadow-lg"
           >
-            <div className="flex items-center gap-3">
-              <div className="text-lg">🎵</div>
+            <div className="flex items-center gap-2">
+              <div className="text-base text-rose-500">🎵</div>
               <div>
-                <p className="text-sm font-medium">{t.clickAnywhere}</p>
-                <p className="text-xs text-white/70">{t.startMusic}</p>
+                <p className="text-xs font-medium">{t.clickAnywhere}</p>
+                <p className="text-[10px] text-rose-500/70">{t.startMusic}</p>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* RSVP Button */}
-      <motion.button
-        onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-rose-500 to-yellow-400 text-white px-8 py-4 rounded-xl shadow-xl border border-yellow-300 font-semibold hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.6 }}
-        style={{
-          WebkitTapHighlightColor: 'transparent'
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-lg">💌</span>
-          <span>{t.rsvp}</span>
-        </div>
-      </motion.button>
-
       {/* Footer */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        className="mt-8 mb-24 text-white/80 text-sm z-10 text-center"
-        style={{
-          WebkitTransform: 'translate3d(0,0,0)',
-          transform: 'translate3d(0,0,0)'
-        }}
+        className="mt-4 mb-28 text-rose-600/80 text-xs text-center"
       >
-        <p className="font-light mb-3">
+        <p className="font-light mb-2">
           {t.finalMessage}
         </p>
-        <div className="flex justify-center gap-4 text-xl">
-          {['💐', '🌹', '✨'].map((icon, index) => (
+        <div className="flex justify-center gap-3 text-base">
+          {['💐', '🌹', '✨'].map((icon) => (
             <motion.span
               key={icon}
-              animate={{
-                scale: [1, 1.2, 1],
-              y: [0, -3, 0],
-              opacity: [0.7, 1, 0.7],
-              rotate: [0, 5, -5, 0],
-              transition: {
-                duration: 3,
-                repeat: Infinity,
-                delay: index * 0.5,
-              },
-            }}
+              animate={{ scale: [1, 1.2, 1], y: [0, -2, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
             >
               {icon}
             </motion.span>
           ))}
         </div>
-        
-        <motion.div
-          className="mt-4 text-rose-400 text-sm"
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          <FaHeart className="inline-block mx-1" /> {t.couple} <FaHeart className="inline-block mx-1" />
-        </motion.div>
       </motion.div>
 
-      {/* RSVP Modal */}
+      {/* Fixed RSVP Modal */}
       <RSVPModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -1011,40 +1028,6 @@ export default function WeddingCelebrationArabic() {
         guestName={guestInfo?.name || t.guestName}
         lang={lang}
       />
-
-      {/* Simple music notes animation */}
-      <AnimatePresence>
-        {isPlaying && (
-          <>
-            {[...Array(3)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="fixed text-2xl z-40 pointer-events-none"
-                style={{
-                  left: `${20 + i * 25}%`,
-                  bottom: '5%',
-                }}
-                initial={{ opacity: 0, y: 0, scale: 0 }}
-                animate={{
-                  opacity: [0, 0.8, 0],
-                  y: [0, -100, -200],
-                  x: [0, (Math.random() - 0.5) * 40],
-                  rotate: [0, 180, 360],
-                  scale: [0, 1, 0.8],
-                }}
-                transition={{
-                  duration: 6 + i,
-                  repeat: Infinity,
-                  delay: i * 0.5,
-                  ease: 'easeOut',
-                }}
-              >
-                {['🎵', '🎶', '🎵'][i % 3]}
-              </motion.div>
-            ))}
-          </>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
