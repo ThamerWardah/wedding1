@@ -511,7 +511,7 @@ export default function WeddingCelebrationArabic() {
   const [showMusicHint, setShowMusicHint] = useState(true)
   const [lang, setLang] = useState('ar')
   const [timeLeft, setTimeLeft] = useState({})
-  const [audioReady, setAudioReady] = useState(false)
+  const [audioContext, setAudioContext] = useState(null)
   const audioRef = useRef(null)
 
   // Wedding date
@@ -541,7 +541,11 @@ export default function WeddingCelebrationArabic() {
   }, [])
 
   // Romantic Arabic wedding music playlist
-  const songs = useMemo(() => ['/music/song1.mp3'], [])
+  const songs = useMemo(() => [
+    '/music/song1.mp3',
+    '/music/song2.mp3',
+    '/music/song3.mp3'
+  ], [])
 
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
 
@@ -607,25 +611,34 @@ export default function WeddingCelebrationArabic() {
     },
   }[lang]), [lang])
 
+  // **WHY iOS AUDIO DOESN'T WORK:**
+  // 1. iOS requires explicit user gesture to play audio
+  // 2. Audio must be played within the same call stack as the user interaction
+  // 3. iOS Safari has strict autoplay policies that block audio until user interacts
+  // 4. Audio context must be created/resumed after user interaction
+
   // Enhanced audio initialization for iOS/Android
-  const initializeAudio = useCallback(() => {
-    if (audioRef.current) {
-      // Universal mobile audio settings
+  const initializeAudio = useCallback(async () => {
+    if (!audioRef.current) return false
+
+    try {
+      // iOS/Android specific audio settings
       audioRef.current.preload = 'auto'
       audioRef.current.playsInline = true
       audioRef.current.setAttribute('webkit-playsinline', 'true')
       audioRef.current.setAttribute('playsinline', 'true')
-      audioRef.current.volume = 0.7
       audioRef.current.muted = false
+      audioRef.current.volume = 0.7
       
-      // Load the audio silently
+      // Load the audio
       audioRef.current.load()
       
-      console.log('Audio initialized for mobile')
-      setAudioReady(true)
+      console.log('Audio initialized successfully')
       return true
+    } catch (error) {
+      console.error('Audio initialization failed:', error)
+      return false
     }
-    return false
   }, [])
 
   // Universal user interaction handler for iOS & Android
@@ -636,22 +649,27 @@ export default function WeddingCelebrationArabic() {
     }
     
     if (!userInteracted) {
+      console.log('First user interaction detected - initializing audio')
       setUserInteracted(true)
       setShowMusicHint(false)
       
-      console.log('First user interaction detected')
-      
-      // Initialize audio on first interaction
-      const audioInitialized = initializeAudio()
-      
-      if (audioInitialized && audioRef.current) {
-        try {
-          // Small delay to ensure audio is ready
-          await new Promise(resolve => setTimeout(resolve, 200))
+      try {
+        // Initialize audio first
+        await initializeAudio()
+        
+        // Small delay to ensure audio is ready
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Try to play audio immediately after user interaction
+        if (audioRef.current) {
+          // Reset audio to beginning
+          audioRef.current.currentTime = 0
           
-          // Unlock audio context on iOS
+          // Unmute and set volume
+          audioRef.current.muted = false
           audioRef.current.volume = 0.7
           
+          // Play audio - this must happen in the same call stack as user interaction
           const playPromise = audioRef.current.play()
           
           if (playPromise !== undefined) {
@@ -661,18 +679,19 @@ export default function WeddingCelebrationArabic() {
                 setIsPlaying(true)
               })
               .catch(error => {
-                console.log('First interaction audio play failed:', error)
-                // Silent fail - user can use music button later
+                console.log('Auto-play was prevented:', error)
+                // Don't show error to user, they can use music button
               })
           }
-        } catch (error) {
-          console.log('Audio play error:', error)
         }
+      } catch (error) {
+        console.log('Audio play error:', error)
+        // Silent fail - user can use music button later
       }
     }
   }, [userInteracted, initializeAudio])
 
-  // Enhanced audio initialization
+  // Enhanced audio initialization on load
   useEffect(() => {
     if (isLoaded) {
       // Pre-initialize audio but don't play until user interaction
@@ -739,41 +758,76 @@ export default function WeddingCelebrationArabic() {
     return () => clearTimeout(timer)
   }, [isLoaded])
 
-  // Enhanced music control functions
+  // Enhanced music control functions with iOS compatibility
   const toggleMusic = useCallback(async (e) => {
     if (e) {
-      e.stopPropagation()
       e.preventDefault()
-    }
-    
-    if (!userInteracted) {
-      // If first interaction is through music button, trigger the interaction flow
-      await handleUserInteraction()
+      e.stopPropagation()
     }
 
-    if (audioRef.current && audioReady) {
+    if (!audioRef.current) return
+
+    try {
       if (isPlaying) {
+        // Pause music
         audioRef.current.pause()
         setIsPlaying(false)
+        console.log('Music paused')
       } else {
-        try {
-          const playPromise = audioRef.current.play()
-          
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                setIsPlaying(true)
-              })
-              .catch(error => {
-                console.log('Music toggle play failed:', error)
-              })
-          }
-        } catch (error) {
-          console.log('Music play error:', error)
+        // Play music
+        if (!userInteracted) {
+          // If this is the first interaction, use the interaction handler
+          await handleUserInteraction()
+          return
+        }
+
+        // Ensure audio is initialized
+        await initializeAudio()
+        
+        // Reset to beginning if needed
+        if (audioRef.current.currentTime > 0 && audioRef.current.ended) {
+          audioRef.current.currentTime = 0
+        }
+        
+        // Unmute and set volume
+        audioRef.current.muted = false
+        audioRef.current.volume = 0.7
+        
+        // Play audio
+        const playPromise = audioRef.current.play()
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true)
+              console.log('Music started successfully')
+            })
+            .catch(error => {
+              console.error('Error playing music:', error)
+              // Try to handle specific iOS errors
+              if (error.name === 'NotAllowedError') {
+                console.log('Play was not allowed - user interaction required')
+              }
+            })
         }
       }
+    } catch (error) {
+      console.error('Music toggle error:', error)
     }
-  }, [userInteracted, isPlaying, audioReady, handleUserInteraction])
+  }, [isPlaying, userInteracted, initializeAudio, handleUserInteraction])
+
+  // Handle song end
+  const handleSongEnd = useCallback(() => {
+    setCurrentSongIndex(prev => (prev + 1) % songs.length)
+    setIsPlaying(false)
+    
+    // Auto-play next song after a short delay
+    setTimeout(() => {
+      if (audioRef.current && userInteracted) {
+        audioRef.current.play().then(() => setIsPlaying(true))
+      }
+    }, 2000)
+  }, [songs.length, userInteracted])
 
   // Hide music hint after 8 seconds
   useEffect(() => {
@@ -812,7 +866,6 @@ export default function WeddingCelebrationArabic() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
             className="text-2xl text-rose-600 font-light mb-4"
-            style={{ fontFamily: 'var(--font-arabic)' }}
           >
             {t.loading}
           </motion.h2>
@@ -821,7 +874,6 @@ export default function WeddingCelebrationArabic() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
             className="text-rose-500/70 text-base"
-            style={{ fontFamily: 'var(--font-arabic)' }}
           >
             {t.preparing}
           </motion.p>
@@ -835,7 +887,7 @@ export default function WeddingCelebrationArabic() {
       <style jsx global>{`
         :root {
           --font-arabic: 'SF Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          --font-english: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --font-english: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
         
         .font-arabic {
@@ -846,21 +898,23 @@ export default function WeddingCelebrationArabic() {
           font-family: var(--font-english);
         }
         
-        /* Better text rendering */
+        /* Better text rendering for all devices */
         * {
           text-rendering: optimizeLegibility;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
         }
         
+        /* iOS specific improvements */
+        @supports (-webkit-touch-callout: none) {
+          .min-h-screen {
+            min-height: -webkit-fill-available;
+          }
+        }
+        
         /* Arabic specific improvements */
         [dir="rtl"] {
           letter-spacing: 0;
-        }
-        
-        /* Ensure proper line heights */
-        .text-content {
-          line-height: 1.6;
         }
       `}</style>
 
@@ -876,19 +930,22 @@ export default function WeddingCelebrationArabic() {
           WebkitTouchCallout: 'none',
           WebkitUserSelect: 'none',
           userSelect: 'none',
+          minHeight: '100vh',
+          minHeight: '-webkit-fill-available',
         }}
       >
-        {/* Hidden Audio Element with universal mobile optimizations */}
+        {/* Hidden Audio Element with iOS/Android optimizations */}
         <audio
           ref={audioRef}
           src={songs[currentSongIndex]}
-          loop={true}
+          loop={false}
           preload="auto"
           playsInline
+          webkit-playsinline="true"
           crossOrigin="anonymous"
+          onEnded={handleSongEnd}
           onLoadedMetadata={() => {
             console.log('Audio metadata loaded')
-            setAudioReady(true)
           }}
           onError={(e) => {
             console.error('Audio error:', e)
@@ -929,6 +986,7 @@ export default function WeddingCelebrationArabic() {
         {/* Language Switch Button */}
         <motion.button
           onClick={(e) => {
+            e.preventDefault()
             e.stopPropagation()
             setLang(lang === 'ar' ? 'en' : 'ar')
           }}
@@ -972,7 +1030,7 @@ export default function WeddingCelebrationArabic() {
             <motion.h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent leading-tight">
               {t.title}
             </motion.h1>
-            <motion.p className="text-rose-700/90 text-sm font-light leading-relaxed text-content">
+            <motion.p className="text-rose-700/90 text-sm font-light leading-relaxed">
               {t.quote}
             </motion.p>
           </motion.div>
@@ -988,7 +1046,7 @@ export default function WeddingCelebrationArabic() {
               <div className="text-2xl my-3 text-rose-500">💞</div>
               <span className="block text-pink-600 mt-2 text-lg">{t.bride}</span>
             </motion.h2>
-            <motion.p className="text-rose-700/90 text-sm leading-relaxed text-center italic text-content">
+            <motion.p className="text-rose-700/90 text-sm leading-relaxed text-center italic">
               {t.message}
             </motion.p>
           </motion.div>
@@ -1058,7 +1116,7 @@ export default function WeddingCelebrationArabic() {
             animate={{ opacity: 1 }}
             className="bg-white/30 backdrop-blur-lg rounded-2xl p-5 border border-white/40 shadow-xl"
           >
-            <motion.p className="text-rose-700/95 text-sm leading-loose text-center font-light italic text-content">
+            <motion.p className="text-rose-700/95 text-sm leading-loose text-center font-light italic">
               {lang === 'ar' 
                 ? "في هذه الليلة المباركة، حيث تلتقي القلوب وتتحد الأرواح، نحتفل ببداية رحلة حب جديدة... رحلة تبدأ بوعود وتستمر بذكريات جميلة ترويها الأيام، وتنتهي بخلود في جنات النعيم"
                 : "In this blessed night, where hearts meet and souls unite, we celebrate the beginning of a new love journey... A journey that begins with promises and continues with beautiful memories told by the days, and ends with eternity in paradise"
@@ -1127,7 +1185,7 @@ export default function WeddingCelebrationArabic() {
           animate={{ opacity: 1 }}
           className="mt-6 mb-28 text-rose-600/80 text-sm text-center"
         >
-          <p className="font-light mb-3 text-sm text-content">
+          <p className="font-light mb-3 text-sm">
             {t.finalMessage}
           </p>
           <div className="flex justify-center gap-3 text-lg">
