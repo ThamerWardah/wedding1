@@ -16,6 +16,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
+    console.log(JSON.stringify(body))
     const { guestNumber, ...rsvpData } = body
 
     if (!guestNumber) {
