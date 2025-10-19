@@ -1007,7 +1007,7 @@ export default function WeddingCelebrationArabic() {
       <RSVPModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        guestNumber={guestInfo?.number}
+        guestNumber={guestNumber}
         guestName={guestInfo?.name || t.guestName}
         lang={lang}
       />

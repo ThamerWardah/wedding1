@@ -74,7 +74,7 @@ export default function Home() {
           ))}
         </div>
       </motion.div>
-      <div className="absolute bottom-0 right-0 w-screen bg-blue-900 h-40 z-2"></div>
+      <div className="absolute bottom-0 right-0 w-screen bg-blue-900 h-20 z-2"></div>
       <div className="absolute bottom-0 left-[-10px] w-12 bg-gray-400 h-48 z-0 rounded-r-[4px]"></div>
     </div>
   )
