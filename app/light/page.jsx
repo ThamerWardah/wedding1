@@ -1,10 +1,13 @@
 'use client'
-import { motion } from 'framer-motion'
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+
+import "@fontsource/amiri/400.css";
+import "@fontsource/amiri/700.css";
+
+import { motion } from 'framer-motion';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export default function Light(){
 
-    const data = [5,6,1,2,1,2,1,21,,21,2,4,3,2,1,2,1]
 
 
   const [isLoaded, setIsLoaded] = useState(false)
@@ -319,7 +322,7 @@ export default function Light(){
 
 
     return(
-        <div className="bg-white w-screen min-h-screen text-blue-600 text-lg  font-extrabold flex flex-col justify-center items-end p-2 gap-4"
+        <div className="bg-white w-screen min-h-screen text-blue-600   font-extrabold flex flex-col justify-center items-end p-2 gap-4"
         
       onClick={handleUserInteraction}
       onTouchStart={handleTouchStart}
@@ -327,6 +330,7 @@ export default function Light(){
       role="button"
       tabIndex={0}
       style={{
+        fontFamily: "Amiri, serif",
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
@@ -361,7 +365,7 @@ export default function Light(){
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="relative rounded-2xl p-6 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-green-600/60 min-h-[100px] text-center"
+            className="relative rounded-2xl p-6 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-green-600/50 min-h-[100px] text-center"
           >
             <div className="absolute inset-0  rounded-2xl"
                         style={{
@@ -375,7 +379,8 @@ export default function Light(){
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.8, type: 'spring' }}
-                className="text-4xl md:text-5xl font-bold mb-4 text-center  font-elegant"
+                className="text-xl md:text-5xl font-bold mb-4 text-center "
+                style={{        fontFamily: "Amiri, serif",}}
               >
                 {t.title}
               </motion.h1>
@@ -389,7 +394,7 @@ export default function Light(){
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="text-black font-semibold text-lg "
+                className="text-black font-semibold text-s"
               >
                 {t.quote}
               </motion.p>
@@ -409,7 +414,7 @@ export default function Light(){
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="relative rounded-2xl p-5 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-green-600/60"
+            className="relative rounded-2xl p-5 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-green-600/40"
                                     style={{
               backgroundImage: `url(./h3.jpg)`,
               backgroundSize: 'cover',
@@ -470,7 +475,7 @@ export default function Light(){
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="relative rounded-2xl text-white p-1 pb-2 mb-6 bg-gradient-to-br from-purple-900/90 to-blue-900 backdrop-blur-sm border border-white/20 w-6/8 z-60 shadow-xl shadow-green-600/60"
+            className="relative rounded-2xl text-white p-1 pb-2 mb-6 bg-gradient-to-br from-purple-900/90 to-blue-900 backdrop-blur-sm border border-white/20 w-6/8 z-60 shadow-xl shadow-green-600/50"
           >
             <h2 className="text-xl text-center md:text-2xl font-semibold text-rose-300 mb-4">
               {t.countdown}
@@ -519,7 +524,7 @@ export default function Light(){
 
 
 
-            <div className="fixed inset-0 bg-gradient-to-l from-black via-pink-300  to-transparent animate-fog-gradient3   z-100"> </div>
+            <div className="fixed inset-0 bg-gradient-to-l from-black via-pink-300/0  to-transparent animate-fog-gradient3   z-100"> </div>
         
 
         </div>

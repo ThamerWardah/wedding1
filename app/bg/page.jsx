@@ -1,4 +1,5 @@
-
+import "@fontsource/amiri/400.css";
+import "@fontsource/amiri/700.css";
 export default function Bg(){
     return(
         <div className="flex w-screen h-screen justify-center items-center flex-wrap gap-8 ">
@@ -41,7 +42,7 @@ Here is the main text
 
   <div className=" z-0 absolute inset-0 bg-[url('/h2.jpg')] bg-cover bg-center"></div>
 
-  <div className="relative z-20 text-white">Animated Image + Gradient mix-blend-overlay</div>
+  <div className="relative z-20 ">نوع الخط الاساسي</div>
 
   <div className="absolute inset-0 bg-gradient-to-r from-blue-800 via-rose-300/20 to-green-800 animate-fog-gradient opacity-90 z-50"></div>
 
@@ -63,7 +64,7 @@ Here is the main text
 
   <div className=" z-0 absolute inset-0 bg-[url('/h2.jpg')] bg-cover bg-center"></div>
 
-  <div className="relative z-20 text-white">Animated Image + Gradient mix-blend-overlay</div>
+  <div className="relative z-20  text-black" style={{fontFamily: "Amiri, serif"}}>نوع الخط الاساسي</div>
 
 
 <div className="absolute inset-0 bg-gradient-to-tr from-black via-white/20 to-black animate-fog-gradient3  opacity-90 z-50"></div>

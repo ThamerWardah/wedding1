@@ -1,4 +1,6 @@
+@import url(https://fonts.googleapis.com/earlyaccess/amiri.css);
 @import "tailwindcss";
+
 
 
 @keyframes fogGradient3 {
@@ -97,6 +99,7 @@
 }
 
 body {
+  font-family: 'Amiri', serif;
   color:black;
   background: linear-gradient(
       to bottom,
