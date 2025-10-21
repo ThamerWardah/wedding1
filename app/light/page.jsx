@@ -63,7 +63,7 @@ export default function Light(){
   // Translation texts
   const t = useMemo(() => ({
     ar: {
-      title: 'افراح الظاهر والعتيبي',
+      title: 'افراح العتيبي والظاهر',
       welcome: 'مرحباً بك',
       guestName: 'ضيفنا الكريم',
       couple: 'خالد ❤️ بيار',
@@ -459,7 +459,7 @@ export default function Light(){
                 transition={{ delay: 1 }}
                 className="text-black/90 text-lg  font-semibold leading-relaxed text-center italic "
               >
-                {t.message}
+  {/*     {t.message} */}
               </motion.p>
             </div>
 
@@ -521,6 +521,20 @@ export default function Light(){
 
 
 
+          {/* Location Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+                                    style={{
+              backgroundImage: `url(./h2.jpg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+            className="relative rounded-2xl  p-1 pb-2 mb-6 min-h-[100px] border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC] text-center flex justify-center items-center text-blue-900 text-lg"
+          >
+            {t.location}
+          </motion.div>
 
 
 
@@ -533,7 +547,7 @@ export default function Light(){
 
 
 
-            <div className="fixed inset-0 bg-gradient-to-l from-black via-black/20  to-transparent animate-fog-gradient3   z-100"> </div>
+            <div className="fixed inset-0 bg-gradient-to-l from-white via-white/10  to-transparent animate-fog-gradient3   z-100"> </div>
         
 
         </div>
