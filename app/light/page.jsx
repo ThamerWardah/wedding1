@@ -418,7 +418,7 @@ export default function Light(){
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="relative rounded-2xl p-5 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-[#F5F5DC] min-h-[260px]"
+            className="relative rounded-2xl p-5 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-[#F5F5DC] min-h-[240px] flex items-end"
                                     style={{
               backgroundImage: `url(./h4.jpg)`,
               backgroundSize: 'cover',
@@ -457,7 +457,7 @@ export default function Light(){
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="text-black/90 text-lg font-semibold leading-relaxed text-center italic "
+                className="text-black/90 text-lg  font-semibold leading-relaxed text-center italic "
               >
                 {t.message}
               </motion.p>
@@ -486,7 +486,7 @@ export default function Light(){
             }}
             className="relative rounded-2xl text-gray-600 p-1 pb-2 mb-6  border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC]"
           >
-            <h2 className="text-xl text-center md:text-2xl font-semibold text-gray-500 mb-4">
+            <h2 className="text-lg text-center md:text-xl font-semibold text-gray-500 mb-4">
               {t.countdown}
             </h2>
             
@@ -495,9 +495,9 @@ export default function Light(){
                 {['days', 'hours', 'minutes', 'seconds'].map((key) => (
                   <div
                     key={key}
-                    className="bg-white/15 rounded-xl px-4 py-3 min-w-[70px] backdrop-blur-sm border border-white/10"
+                    className="bg-white/15 rounded-lg px-2 text-center py-3 min-w-[50px] backdrop-blur-sm border border-white/10"
                   >
-                    <p className=" text-2xl font-bold">
+                    <p className=" text-lg font-bold">
                       {timeLeft[key] ?? '--'}
                     </p>
                     <p className="text-sm text-white/80 mt-1 font-light">
@@ -533,7 +533,7 @@ export default function Light(){
 
 
 
-            <div className="fixed inset-0 bg-gradient-to-l from-black via-pink-300/0  to-transparent animate-fog-gradient3   z-100"> </div>
+            <div className="fixed inset-0 bg-gradient-to-l from-black via-black/20  to-transparent animate-fog-gradient3   z-100"> </div>
         
 
         </div>
