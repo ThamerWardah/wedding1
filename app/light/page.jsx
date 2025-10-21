@@ -365,7 +365,7 @@ export default function Light(){
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="relative rounded-2xl p-6 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-green-600/50 min-h-[100px] text-center"
+            className="relative rounded-2xl p-6 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-[#F5F5DC]  min-h-[100px] text-center"
           >
             <div className="absolute inset-0  rounded-2xl"
                         style={{
@@ -379,7 +379,11 @@ export default function Light(){
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.8, type: 'spring' }}
-                className="text-xl md:text-5xl font-bold mb-4 text-center "
+                className="text-xl md:text-5xl font-bold mb-4 text-center
+                
+                text-red-900 
+
+                "
                 style={{        fontFamily: "Amiri, serif",}}
               >
                 {t.title}
@@ -414,9 +418,9 @@ export default function Light(){
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="relative rounded-2xl p-5 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-green-600/40"
+            className="relative rounded-2xl p-5 mb-6 overflow-hidden w-6/8 z-60 shadow-xl shadow-[#F5F5DC] min-h-[260px]"
                                     style={{
-              backgroundImage: `url(./h3.jpg)`,
+              backgroundImage: `url(./h4.jpg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
@@ -430,7 +434,7 @@ export default function Light(){
                 className="text-2xl md:text-3xl text-white font-semibold mb-6 text-center"
               >
                 <span className="block text-blue-700 mb-3 text-4xl">
-                  {t.groom}
+                  {/*{t.groom} */}
                 </span>
                 <motion.div
                   className="text-4xl my-4"
@@ -443,10 +447,10 @@ export default function Light(){
                     repeatType: 'reverse',
                   }}
                 >
-                  💞
+                  {/*💞 */}
                 </motion.div>
                 <span className="block text-green-500 mt-3 text-4xl">
-                  {t.bride}
+                 {/* {t.bride} */}
                 </span>
               </motion.h2>
               <motion.p
@@ -475,9 +479,14 @@ export default function Light(){
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="relative rounded-2xl text-white p-1 pb-2 mb-6 bg-gradient-to-br from-purple-900/90 to-blue-900 backdrop-blur-sm border border-white/20 w-6/8 z-60 shadow-xl shadow-green-600/50"
+                                    style={{
+              backgroundImage: `url(./h2.jpg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+            className="relative rounded-2xl text-gray-600 p-1 pb-2 mb-6  border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC]"
           >
-            <h2 className="text-xl text-center md:text-2xl font-semibold text-rose-300 mb-4">
+            <h2 className="text-xl text-center md:text-2xl font-semibold text-gray-500 mb-4">
               {t.countdown}
             </h2>
             
@@ -518,7 +527,7 @@ export default function Light(){
 
 
 
-            <div className="fixed z-10 bg-[url('/amina.jpg')] inset-0 bg-cover bg-center w-2/5 h-screen  ">
+            <div className="fixed z-10 bg-[url('/h1.jpg')] inset-0 bg-cover bg-center w-2/5 h-screen  ">
                  <div className="absolute right-0 inset-0 bg-gradient-to-l from-transparent to-white border-0"></div>
             </div>
 
