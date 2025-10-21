@@ -9,7 +9,8 @@ export default function RSVPModal({
   guestNumber, 
   guestName, 
   currentResponse,
-  lang
+  lang,
+  guestInfo
 }) {
   const [name, setName] = useState('');
   const [attending, setAttending] = useState(null);
@@ -109,6 +110,7 @@ export default function RSVPModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+      console.log(JSON.stringify(guestInfo))
     if (!name || !attending) return;
 
     setIsSubmitting(true);

@@ -68,9 +68,9 @@ export default function WeddingCelebrationArabic() {
   // Section background images
   const sectionBackgrounds = useMemo(
     () => ({
-      header: '/h1.jpg',
-      couple: '/h1.jpg',
-      date: '/h1.jpg',
+      header: '/h2.jpg',
+      couple: '/h3.jpg',
+      date: '/h2.jpg',
       venue: '/h1.jpg',
       quote: '/h1.jpg',
     }),
@@ -229,6 +229,7 @@ export default function WeddingCelebrationArabic() {
 
   // Fetch wedding settings and guest info
   useEffect(() => {
+    
     const fetchData = async () => {
       try {
         // Fetch wedding settings
@@ -521,7 +522,7 @@ export default function WeddingCelebrationArabic() {
   return (
     <div
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-center font-arabic bg-black px-4 py-4 select-none"
+      className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-center font-arabic bg-amber-50 px-4 py-4 select-none"
       onClick={handleUserInteraction}
       onTouchStart={handleTouchStart}
       onKeyDown={handleUserInteraction}
@@ -549,7 +550,6 @@ export default function WeddingCelebrationArabic() {
         playsInline
         crossOrigin="anonymous"
         onLoadedMetadata={() => {
-          console.log('Audio metadata loaded')
           setAudioReady(true)
         }}
         onError={(e) => {
@@ -557,40 +557,8 @@ export default function WeddingCelebrationArabic() {
         }}
       />
 
-      {/* Optimized Background Images */}
-      <div className="absolute inset-0">
-        {backgrounds.map((bg, i) => (
-          <motion.div
-            key={i}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url(${bg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center 35%',
-              filter: 'brightness(0.8) contrast(1.1)',
-            }}
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: currentBg === i ? 1 : 0,
-              scale: currentBg === i ? 1 : 1.03,
-            }}
-            transition={{
-              duration: 3,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-
-        {/* Enhanced Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/40 to-black/85"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 mix-blend-soft-light"></div>
-        
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)] z-0" />
-      </div>
 
       {/* Heart Animation Component */}
-      <HeartAnimation />
 
       {/* Language Switch Button */}
       <motion.button
@@ -631,7 +599,7 @@ export default function WeddingCelebrationArabic() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-center mb-4"
+            className="text-center mb-4 "
           >
             <motion.h3
               className="text-xl text-white/80 font-light mb-2"
@@ -667,13 +635,14 @@ export default function WeddingCelebrationArabic() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             className="relative rounded-2xl p-6 mb-6 overflow-hidden"
-            style={{
+          >
+            <div className="absolute inset-0  rounded-2xl"
+                        style={{
               backgroundImage: `url(${sectionBackgrounds.header})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
-          >
-            <div className="absolute inset-0 bg-black/50 rounded-2xl"></div>
+            ></div>
             <div className="relative z-10">
               <motion.h1
                 initial={{ scale: 0.9 }}
@@ -705,14 +674,14 @@ export default function WeddingCelebrationArabic() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="relative rounded-2xl p-6 mb-6 overflow-hidden"
+            className="relative rounded-2xl p-6 mb-6 overflow-hidden "
             style={{
               backgroundImage: `url(${sectionBackgrounds.couple})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
           >
-            <div className="absolute inset-0 bg-purple-900/60 rounded-2xl"></div>
+            <div className="absolute inset-0  rounded-2xl"></div>
             <div className="relative z-10">
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
@@ -720,13 +689,13 @@ export default function WeddingCelebrationArabic() {
                 transition={{ delay: 0.8 }}
                 className="text-2xl md:text-3xl text-white font-semibold mb-6 text-center"
               >
-                <span className="block text-yellow-200 mb-3 text-3xl">
+                <span className="block text-blue-700 mb-3 text-4xl">
                   {t.groom}
                 </span>
                 <motion.div
                   className="text-4xl my-4"
                   animate={{
-                    scale: [1, 1.2, 1],
+                    scale: [1, 1.3, 1],
                   }}
                   transition={{
                     duration: 3,
@@ -736,7 +705,7 @@ export default function WeddingCelebrationArabic() {
                 >
                   💞
                 </motion.div>
-                <span className="block text-pink-200 mt-3 text-3xl">
+                <span className="block text-green-500 mt-3 text-4xl">
                   {t.bride}
                 </span>
               </motion.h2>
@@ -749,6 +718,11 @@ export default function WeddingCelebrationArabic() {
                 {t.message}
               </motion.p>
             </div>
+
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-white/10 to-black animate-fog-gradient opacity-90 z-50"></div>
+
+                <div className="absolute inset-0 bg-gradient-to-tr from-black via-white/10 to-black animate-fog-gradient2  opacity-90 z-50"></div>
+
           </motion.div>
 
           {/* Countdown Section */}
@@ -798,12 +772,7 @@ export default function WeddingCelebrationArabic() {
           >
             {/* Date Section */}
             <motion.div
-              className="relative rounded-2xl p-6 overflow-hidden"
-              style={{
-                backgroundImage: `url(${sectionBackgrounds.date})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
+              className="relative rounded-2xl p-6 overflow-hidden bg-amber-100"
               whileHover={{ scale: 1.02 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
@@ -821,12 +790,7 @@ export default function WeddingCelebrationArabic() {
 
             {/* Venue Section */}
             <motion.div
-              className="relative rounded-2xl p-6 overflow-hidden"
-              style={{
-                backgroundImage: `url(${sectionBackgrounds.venue})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
+              className="relative rounded-2xl p-6 overflow-hidden bg-amber-100"
               whileHover={{ scale: 1.02 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
@@ -1010,6 +974,7 @@ export default function WeddingCelebrationArabic() {
         guestNumber={guestNumber}
         guestName={guestInfo?.name || t.guestName}
         lang={lang}
+        guestInfo={guestInfo}
       />
 
       {/* Simple music notes animation */}
@@ -1045,6 +1010,7 @@ export default function WeddingCelebrationArabic() {
           </>
         )}
       </AnimatePresence>
+
     </div>
   )
 }

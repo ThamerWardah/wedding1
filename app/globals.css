@@ -1,5 +1,87 @@
 @import "tailwindcss";
 
+
+@keyframes fogGradient3 {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.animate-fog-gradient3 {
+    background-size: 270% 200%;
+  animation: fogGradient3 8s ease-in-out 1;
+}
+
+
+
+
+
+
+
+
+
+
+@keyframes fogGradient2 {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.animate-fog-gradient2 {
+    background-size: 200% 150%;
+  animation: fogGradient2 8s ease infinite;
+}
+
+
+
+
+
+
+
+@keyframes fogGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.animate-fog-gradient {
+    background-size: 150% 150%;
+  animation: fogGradient 6s ease infinite;
+}
+
+
+
+
+
+
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 5s ease infinite;
+}
+
+
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
