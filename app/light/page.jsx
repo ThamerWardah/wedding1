@@ -389,7 +389,7 @@ export default function Light(){
                 {t.title}
               </motion.h1>
               <motion.div
-                className="h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent rounded-full w-48 mx-auto my-4"
+                className="h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent rounded-full w-48 mx-auto my-4 animate-pulse"
                 initial={{ width: 0 }}
                 animate={{ width: 192 }}
                 transition={{ delay: 0.8, duration: 1 }}
