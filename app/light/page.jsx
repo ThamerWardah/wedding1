@@ -1,5 +1,6 @@
 'use client'
 
+import FloatingElements from "@/components/FloatingElements";
 import "@fontsource/amiri/400.css";
 import "@fontsource/amiri/700.css";
 
@@ -357,7 +358,8 @@ export default function Light(){
         }}
       />
 
-
+{/*  Floating Component Is herer    */}
+        <FloatingElements />
 
 
           {/* Header Section */}
@@ -549,6 +551,7 @@ export default function Light(){
 
             <div className="fixed inset-0 bg-gradient-to-l from-white via-white/10  to-transparent animate-fog-gradient3   z-100"> </div>
         
+
 
         </div>
     )
