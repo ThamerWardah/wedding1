@@ -359,7 +359,6 @@ export default function Light(){
       />
 
 {/*  Floating Component Is herer    */}
-        <FloatingElements />
 
 
           {/* Header Section */}
@@ -544,7 +543,9 @@ export default function Light(){
 
 
             <div className="fixed z-10 bg-[url('/h1.jpg')] inset-0 bg-cover bg-center w-2/5 h-screen  ">
-                 <div className="absolute right-0 inset-0 bg-gradient-to-l from-transparent to-white border-0"></div>
+                 <div className="absolute right-0 inset-0 bg-gradient-to-l from-transparent to-white border-0">
+                                      <FloatingElements />
+                 </div>
             </div>
 
 
