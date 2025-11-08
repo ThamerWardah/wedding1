@@ -1,13 +1,16 @@
 'use client'
 
-import FloatingElements from "@/components/FloatingElements";
+import RSVPModal from "@/components/RSVPModal4";
 import "@fontsource/amiri/400.css";
 import "@fontsource/amiri/700.css";
 
 import { motion } from 'framer-motion';
+import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export default function Light(){
+    const params = useParams()
+  const guestNumber = params?.guestNumber
 
 
 
@@ -19,11 +22,17 @@ export default function Light(){
   const [timeLeft, setTimeLeft] = useState({})
   const [audioReady, setAudioReady] = useState(true)
   const [isIOS, setIsIOS] = useState(false)
+  const [isRSVPOpen,setIsRSVPOpen]=useState(false)
   const audioRef = useRef(null)
 
   // Wedding date
   const WEDDING_DATE = new Date('2025-12-19T19:00:00')
 
+  
+  useEffect(()=>{
+    setTimeout(()=>setIsRSVPOpen(true),25000)
+  },[])
+  
   // Detect iOS on component mount
   useEffect(() => {
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window ).MSStream
@@ -544,7 +553,7 @@ export default function Light(){
 
             <div className="fixed z-10 bg-[url('/h1.jpg')] inset-0 bg-cover bg-center w-2/5 h-screen  ">
                  <div className="absolute right-0 inset-0 bg-gradient-to-l from-transparent to-white border-0">
-                                      <FloatingElements />
+
                  </div>
             </div>
 
@@ -552,6 +561,13 @@ export default function Light(){
 
             <div className="fixed inset-0 bg-gradient-to-l from-white via-white/10  to-transparent animate-fog-gradient3   z-100"> </div>
         
+
+<RSVPModal onClose={() => setIsRSVPOpen(false)}
+        lang="ar"
+        isOpen={isRSVPOpen}
+        guestNumber={guestNumber}
+        />
+
 
 
         </div>
