@@ -56,9 +56,7 @@ export default function Light(){
     setTimeout(() =>showNotshow(), 10000)
   }, [guestInfo?.name])
 const showNotshow = ()=>{
-  console.log(guestInfo);
   if(guestInfo!==null){
-    console.log(guestInfo?.attendance)
   !guestInfo?.attendance?.attending?setIsRSVPOpen(true):null}
   }
 
@@ -416,7 +414,8 @@ const showNotshow = ()=>{
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 right-4 z-50 bg-white/10 backdrop-blur-xs rounded-lg p-4 shadow-lg border"
+          transition={{ delay: 6 }}
+          className="fixed top-4 right-4 z-50 bg-white/5 backdrop-blur-xs rounded-lg p-4 shadow-lg border"
         >
           <p className="text-sm font-semibold bg-transparent" style={{ color: '#2F4F4F' }}>
             {t.welcome}
@@ -524,47 +523,56 @@ const showNotshow = ()=>{
       </motion.div>
 
       {/* Countdown Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        style={{
-          backgroundImage: `url(./h2.jpg)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-        className="relative rounded-2xl text-gray-600 p-1 pb-2 mb-6 border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC]"
-      >
-        <h2 className="text-lg text-center md:text-xl font-semibold text-gray-500 mb-4">
-          {t.countdown}
-        </h2>
-        
-        {!timeLeft.finished ? (
-          <div className="flex justify-center gap-1 flex-wrap">
-            {['days', 'hours', 'minutes', 'seconds'].map((key) => (
-              <div
-                key={key}
-                className="bg-white/15 rounded-lg px-2 text-center py-3 min-w-[50px] backdrop-blur-sm border border-white/10"
-              >
-                <p className="text-lg font-bold">
-                  {timeLeft[key] ?? '--'}
-                </p>
-                <p className="text-sm text-white/80 mt-1 font-light">
-                  {t[key]}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <motion.p
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="text-xl text-rose-400 font-semibold"
-          >
-            {t.finished}
-          </motion.p>
-        )}
-      </motion.div>
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.9 }}
+  style={{
+    backgroundImage: `url(./h2.jpg)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  }}
+  className="relative rounded-2xl text-gray-600 p-1 pb-2 mb-6 border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC]"
+>
+  {/* Simple Wedding Date - Matching Countdown Style */}
+  <div className="text-center mb-4 mt-2">
+    <div className="bg-white/15 rounded-lg px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm border border-white/10">
+      <span className="text-white font-semibold text-lg">
+        {lang === 'ar' ? '١٩ ديسمبر ٢٠٢٥ - ٧:٠٠ مساءً' : 'December 19, 2025 - 7:00 PM'}
+      </span>
+    </div>
+  </div>
+
+  <h2 className="text-lg text-center md:text-xl font-semibold text-gray-500 mb-4">
+    {t.countdown}
+  </h2>
+  
+  {!timeLeft.finished ? (
+    <div className="flex justify-center gap-1 flex-wrap">
+      {['days', 'hours', 'minutes', 'seconds'].map((key) => (
+        <div
+          key={key}
+          className="bg-white/15 rounded-lg px-2 text-center py-3 min-w-[50px] backdrop-blur-sm border border-white/10"
+        >
+          <p className="text-lg font-bold text-white">
+            {timeLeft[key] ?? '--'}
+          </p>
+          <p className="text-sm text-white/80 mt-1 font-light">
+            {t[key]}
+          </p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <motion.p
+      initial={{ scale: 0.8 }}
+      animate={{ scale: 1 }}
+      className="text-xl text-rose-400 font-semibold"
+    >
+      {t.finished}
+    </motion.p>
+  )}
+</motion.div>
 
       {/* Location Section */}
       <motion.div
