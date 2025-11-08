@@ -53,13 +53,14 @@ export default function Light(){
 
     // Auto-open modal after 5 seconds
   useEffect(() => {
-    setTimeout(() => {
-      if(guestInfo?.attendance.attending){
-        console.log(JSON.stringify(guestInfo))
-        showNotshow()}else{console.log("THIS USER IS ALL READY ATTENDING")}
-    }, 10000)
+    setTimeout(() =>showNotshow(), 10000)
   }, [guestInfo?.name])
-const showNotshow = ()=> guestInfo?.attendance.attending?null:setIsRSVPOpen(true)
+const showNotshow = ()=>{
+  console.log(guestInfo);
+  if(guestInfo!==null){
+    console.log(guestInfo?.attendance)
+  !guestInfo?.attendance?.attending?setIsRSVPOpen(true):null}
+  }
 
   // Detect iOS on component mount
   useEffect(() => {
@@ -406,7 +407,7 @@ const showNotshow = ()=> guestInfo?.attendance.attending?null:setIsRSVPOpen(true
           className="bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:bg-white transition-all duration-200"
           style={{ color: '#8B7355' }}
         >
-          {!guestInfo?.attendance.attending?t.rsvp:t.updateRsvp}
+          {!guestInfo?.attendance?.attending?t.rsvp:t.updateRsvp}
         </button>
       </div>
 
