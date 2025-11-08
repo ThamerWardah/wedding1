@@ -28,10 +28,6 @@ export default function Light(){
   // Wedding date
   const WEDDING_DATE = new Date('2025-12-19T19:00:00')
 
-  // Auto-open modal after 5 seconds
-  useEffect(() => {
-    setTimeout(() => setIsRSVPOpen(true), 10000)
-  }, [])
 
   // Fetch guest information when guestNumber is available
   useEffect(() => {
@@ -54,6 +50,16 @@ export default function Light(){
 
     fetchGuestInfo()
   }, [guestNumber])
+
+    // Auto-open modal after 5 seconds
+  useEffect(() => {
+    setTimeout(() => {
+      if(guestInfo?.attendance.attending){
+        console.log(JSON.stringify(guestInfo))
+        showNotshow()}else{console.log("THIS USER IS ALL READY ATTENDING")}
+    }, 10000)
+  }, [guestInfo?.name])
+const showNotshow = ()=> guestInfo?.attendance.attending?null:setIsRSVPOpen(true)
 
   // Detect iOS on component mount
   useEffect(() => {
@@ -106,6 +112,7 @@ export default function Light(){
       countdown: 'العد التنازلي ليوم الزفاف',
       finished: 'اليوم المنتظر قد حلّ 🎉',
       rsvp: 'تأكيد الحضور',
+      updateRsvp:'تحديث الحضور',
       switch: 'English',
       days: 'يوم',
       hours: 'ساعة',
@@ -135,6 +142,7 @@ export default function Light(){
       countdown: 'Countdown to the Wedding',
       finished: 'The big day has arrived 🎉',
       rsvp: 'RSVP',
+      updateRsvp:'Update RSVP',
       switch: 'العربية',
       days: 'Days',
       hours: 'Hours',
@@ -398,7 +406,7 @@ export default function Light(){
           className="bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:bg-white transition-all duration-200"
           style={{ color: '#8B7355' }}
         >
-          {t.rsvp}
+          {!guestInfo?.attendance.attending?t.rsvp:t.updateRsvp}
         </button>
       </div>
 
@@ -407,12 +415,12 @@ export default function Light(){
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 right-4 z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border"
+          className="fixed top-4 right-4 z-50 bg-white/10 backdrop-blur-xs rounded-lg p-4 shadow-lg border"
         >
-          <p className="text-sm font-semibold" style={{ color: '#2F4F4F' }}>
+          <p className="text-sm font-semibold bg-transparent" style={{ color: '#2F4F4F' }}>
             {t.welcome}
           </p>
-          <p className="text-lg font-bold" style={{ color: '#B8860B' }}>
+          <p className="text-lg font-bold bg-transparent" style={{ color: '#B8860B' }}>
             {guestInfo.name}
           </p>
         </motion.div>
@@ -577,6 +585,10 @@ export default function Light(){
       </div>
 
       <div className="fixed inset-0 bg-gradient-to-l from-white via-white/10 to-transparent animate-fog-gradient3 z-100"></div>
+      
+
+      {/* for the ios when swap the screen from bottom to up to show wight bg */}
+      <div className="fixed inset-0 bg-white 3 z-0 w-screen h-screen"></div>
 
       {/* RSVP Modal */}
       <RSVPModal 
