@@ -23,66 +23,11 @@ export default function Light(){
   const [isRSVPOpen, setIsRSVPOpen] = useState(false)
   const [guestInfo, setGuestInfo] = useState(null)
   const [isLoadingGuest, setIsLoadingGuest] = useState(false)
-  const [deviceAuthorized, setDeviceAuthorized] = useState(null) // null = checking, true = authorized, false = blocked
-  const [deviceCount, setDeviceCount] = useState(0)
   const audioRef = useRef(null)
 
   // Wedding date
   const WEDDING_DATE = new Date('2025-12-19T19:00:00')
 
-  // Device fingerprint and authorization
-  useEffect(() => {
-    const checkDeviceAuthorization = async () => {
-      try {
-        // Generate device fingerprint
-        const fingerprint = generateDeviceFingerprint();
-        
-        const response = await fetch('/api/device/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fingerprint: fingerprint,
-            userAgent: navigator.userAgent,
-            guestNumber: guestNumber || 'default'
-          }),
-        });
-
-        const data = await response.json();
-        
-        setDeviceCount(data.deviceCount || 0);
-        
-        if (data.authorized) {
-          setDeviceAuthorized(true);
-        } else {
-          setDeviceAuthorized(false);
-        }
-      } catch (error) {
-        console.error('Device authorization check failed:', error);
-        // Allow access but don't auto-open modal if check fails
-        setDeviceAuthorized(true);
-      }
-    };
-
-    checkDeviceAuthorization();
-  }, [guestNumber]);
-
-  // Device fingerprint function
-  const generateDeviceFingerprint = () => {
-    const components = [];
-    components.push(navigator.userAgent);
-    components.push(`${screen.width}x${screen.height}`);
-    components.push(screen.colorDepth);
-    components.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    components.push(navigator.language);
-    components.push(navigator.hardwareConcurrency || 'unknown');
-    components.push(navigator.platform);
-    components.push(navigator.maxTouchPoints || '0');
-    
-    const fingerprintString = components.join('|');
-    return btoa(fingerprintString).substring(0, 32);
-  };
 
   // Fetch guest information when guestNumber is available
   useEffect(() => {
@@ -110,11 +55,9 @@ export default function Light(){
   useEffect(() => {
     setTimeout(() =>showNotshow(), 10000)
   }, [guestInfo?.name])
-  
-  const showNotshow = ()=>{
-    if(guestInfo!==null && deviceAuthorized === true){
-      !guestInfo?.attendance?.attending ? setIsRSVPOpen(true) : null
-    }
+const showNotshow = ()=>{
+  if(guestInfo!==null){
+  !guestInfo?.attendance?.attending?setIsRSVPOpen(true):null}
   }
 
   // Detect iOS on component mount
@@ -182,10 +125,7 @@ export default function Light(){
       playMusic: 'تشغيل الموسيقى',
       pauseMusic: 'إيقاف الموسيقى',
       royalHall: 'قاعة الاحتفالات الملكية',
-      finalMessage: 'بكل الحب والفرح، ندعوكم لمشاركتنا هذه اللحظات الخاصة في رحلتنا',
-      deviceLimit: 'الحد الأقصى للأجهزة',
-      deviceLimitMessage: 'تم الوصول إلى الحد الأقصى (جهازين فقط مسموح بهما)',
-      devicesRegistered: 'الأجهزة المسجلة'
+      finalMessage: 'بكل الحب والفرح، ندعوكم لمشاركتنا هذه اللحظات الخاصة في رحلتنا'
     },
     en: {
       title: 'Al Zaher & Al Otaibi Wedding',
@@ -215,10 +155,7 @@ export default function Light(){
       playMusic: 'Play Music',
       pauseMusic: 'Pause Music',
       royalHall: 'Royal Celebration Hall',
-      finalMessage: 'With all our love and joy, we invite you to share these special moments in our journey',
-      deviceLimit: 'Device Limit Reached',
-      deviceLimitMessage: 'Maximum devices reached (only 2 devices allowed)',
-      devicesRegistered: 'Registered devices'
+      finalMessage: 'With all our love and joy, we invite you to share these special moments in our journey'
     },
   }[lang]), [lang])
 
@@ -400,28 +337,10 @@ export default function Light(){
     setLang(prev => prev === 'ar' ? 'en' : 'ar')
   }, [])
 
-  // Open RSVP modal function with device check
+  // Open RSVP modal function
   const openRSVPModal = useCallback(() => {
-    if (deviceAuthorized === false) {
-      alert(t.deviceLimitMessage);
-      return;
-    }
-    setIsRSVPOpen(true);
-  }, [deviceAuthorized, t.deviceLimitMessage]);
-
-  // Show loading while checking device authorization
-  if (deviceAuthorized === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {lang === 'ar' ? 'جاري التحقق من الجهاز...' : 'Checking device authorization...'}
-          </p>
-        </div>
-      </div>
-    );
-  }
+    setIsRSVPOpen(true)
+  }, [])
 
   return (
     <div 
@@ -484,31 +403,11 @@ export default function Light(){
         <button
           onClick={openRSVPModal}
           className="bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:bg-white transition-all duration-200"
-          style={{ 
-            color: deviceAuthorized === false ? '#EF4444' : '#8B7355',
-            borderColor: deviceAuthorized === false ? '#EF4444' : 'gray'
-          }}
+          style={{ color: '#8B7355' }}
         >
-          {deviceAuthorized === false 
-            ? (lang === 'ar' ? '❌ تأكيد الحضور' : '❌ RSVP') 
-            : (!guestInfo?.attendance?.attending ? t.rsvp : t.updateRsvp)
-          }
+          {!guestInfo?.attendance?.attending?t.rsvp:t.updateRsvp}
         </button>
       </div>
-
-      {/* Device Count Indicator */}
-      {deviceCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 left-4 z-50 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs text-blue-700 text-center"
-        >
-          {lang === 'ar' 
-            ? `الأجهزة: ${deviceCount}/2` 
-            : `Devices: ${deviceCount}/2`
-          }
-        </motion.div>
-      )}
 
       {/* Guest Welcome Message */}
       {guestInfo && (
@@ -524,27 +423,6 @@ export default function Light(){
           <p className="text-lg font-bold bg-transparent" style={{ color: '#B8860B' }}>
             {guestInfo.name}
           </p>
-        </motion.div>
-      )}
-
-      {/* Device Limit Warning Banner */}
-      {deviceAuthorized === false && (
-        <motion.div
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg max-w-md mx-auto"
-        >
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">⚠️</div>
-            <div>
-              <p className="text-red-800 font-semibold text-sm">
-                {t.deviceLimit}
-              </p>
-              <p className="text-red-600 text-xs">
-                {t.deviceLimitMessage}
-              </p>
-            </div>
-          </div>
         </motion.div>
       )}
 
@@ -645,56 +523,56 @@ export default function Light(){
       </motion.div>
 
       {/* Countdown Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        style={{
-          backgroundImage: `url(./h2.jpg)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-        className="relative rounded-2xl text-gray-600 p-1 pb-2 mb-6 border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC]"
-      >
-        {/* Simple Wedding Date - Matching Countdown Style */}
-        <div className="text-center mb-4 mt-2">
-          <div className="bg-white/10 rounded-lg px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm border border-white/10">
-            <span className="text-white font-semibold text-lg">
-              {lang === 'ar' ? '١٩ ديسمبر ٢٠٢٥ - ٧:٠٠ مساءً' : 'December 19, 2025 - 7:00 PM'}
-            </span>
-          </div>
-        </div>
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.9 }}
+  style={{
+    backgroundImage: `url(./h2.jpg)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  }}
+  className="relative rounded-2xl text-gray-600 p-1 pb-2 mb-6 border border-white/20 w-6/8 z-60 shadow-xl shadow-[#F5F5DC]"
+>
+  {/* Simple Wedding Date - Matching Countdown Style */}
+  <div className="text-center mb-4 mt-2">
+    <div className="bg-white/10 rounded-lg px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm border border-white/10">
+      <span className="text-white font-semibold text-lg">
+        {lang === 'ar' ? '١٩ ديسمبر ٢٠٢٥ - ٧:٠٠ مساءً' : 'December 19, 2025 - 7:00 PM'}
+      </span>
+    </div>
+  </div>
 
-        <h2 className="text-lg text-center md:text-xl font-semibold text-gray-500 mb-4">
-          {t.countdown}
-        </h2>
-        
-        {!timeLeft.finished ? (
-          <div className="flex justify-center gap-1 flex-wrap">
-            {['days', 'hours', 'minutes', 'seconds'].map((key) => (
-              <div
-                key={key}
-                className="bg-white/15 rounded-lg px-2 text-center py-3 min-w-[50px] backdrop-blur-sm border border-white/10"
-              >
-                <p className="text-lg font-bold text-white">
-                  {timeLeft[key] ?? '--'}
-                </p>
-                <p className="text-sm text-white/80 mt-1 font-light">
-                  {t[key]}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <motion.p
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="text-xl text-rose-400 font-semibold"
-          >
-            {t.finished}
-          </motion.p>
-        )}
-      </motion.div>
+  <h2 className="text-lg text-center md:text-xl font-semibold text-gray-500 mb-4">
+    {t.countdown}
+  </h2>
+  
+  {!timeLeft.finished ? (
+    <div className="flex justify-center gap-1 flex-wrap">
+      {['days', 'hours', 'minutes', 'seconds'].map((key) => (
+        <div
+          key={key}
+          className="bg-white/15 rounded-lg px-2 text-center py-3 min-w-[50px] backdrop-blur-sm border border-white/10"
+        >
+          <p className="text-lg font-bold text-white">
+            {timeLeft[key] ?? '--'}
+          </p>
+          <p className="text-sm text-white/80 mt-1 font-light">
+            {t[key]}
+          </p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <motion.p
+      initial={{ scale: 0.8 }}
+      animate={{ scale: 1 }}
+      className="text-xl text-rose-400 font-semibold"
+    >
+      {t.finished}
+    </motion.p>
+  )}
+</motion.div>
 
       {/* Location Section */}
       <motion.div
@@ -717,20 +595,19 @@ export default function Light(){
 
       <div className="fixed inset-0 bg-gradient-to-l from-white via-white/10 to-transparent animate-fog-gradient3 z-100"></div>
       
+
       {/* for the ios when swap the screen from bottom to up to show wight bg */}
       <div className="fixed inset-0 bg-white 3 z-0 w-screen h-screen"></div>
 
-      {/* RSVP Modal - Only shows if device is authorized */}
-      {deviceAuthorized === true && (
-        <RSVPModal 
-          onClose={() => setIsRSVPOpen(false)}
-          lang={lang}
-          isOpen={isRSVPOpen}
-          guestNumber={guestNumber}
-          guestName={guestInfo?.name}
-          currentResponse={guestInfo?.response}
-        />
-      )}
+      {/* RSVP Modal */}
+      <RSVPModal 
+        onClose={() => setIsRSVPOpen(false)}
+        lang={lang}
+        isOpen={isRSVPOpen}
+        guestNumber={guestNumber}
+        guestName={guestInfo?.name}
+        currentResponse={guestInfo?.response}
+      />
     </div>
   )
 }
