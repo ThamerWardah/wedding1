@@ -4,7 +4,7 @@ import RSVPModal from "@/components/RSVPModal4";
 import "@fontsource/amiri/400.css";
 import "@fontsource/amiri/700.css";
 
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -25,6 +25,8 @@ export default function Light(){
   const [isLoadingGuest, setIsLoadingGuest] = useState(false)
   const [deviceAuthorized, setDeviceAuthorized] = useState(null) // null = checking, true = authorized, false = blocked
   const [deviceCount, setDeviceCount] = useState(0)
+  const [showDeviceInfoModal, setShowDeviceInfoModal] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const audioRef = useRef(null)
 
   // Wedding date
@@ -58,7 +60,7 @@ export default function Light(){
     return deviceId;
   };
 
-  // Device fingerprint and authorization with Firebase
+  // Enhanced device authorization with loading states
   useEffect(() => {
     const checkDeviceAuthorization = async () => {
       try {
@@ -90,6 +92,8 @@ export default function Light(){
         console.error('Device authorization check failed:', error);
         // Allow access if check fails
         setDeviceAuthorized(true);
+      } finally {
+        setPageLoading(false);
       }
     };
 
@@ -197,7 +201,15 @@ export default function Light(){
       finalMessage: 'بكل الحب والفرح، ندعوكم لمشاركتنا هذه اللحظات الخاصة في رحلتنا',
       deviceLimit: 'الحد الأقصى للأجهزة',
       deviceLimitMessage: 'تم الوصول إلى الحد الأقصى (جهازين فقط مسموح بهما)',
-      devicesRegistered: 'الأجهزة المسجلة'
+      devicesRegistered: 'الأجهزة المسجلة',
+      deviceInfoTitle: 'معلومات الجهاز',
+      deviceInfoMessage: 'هذه الدعوة خاصة لجهاز معين. يمكن استخدام كل دعوة على جهازين فقط لحماية خصوصية المناسبة.',
+      deviceInfoNote: 'إذا كنت صاحب الدعوة الأصلي، يمكنك استخدام أحد الجهازين المسجلين مسبقاً للرد على الدعوة.',
+      deviceCountInfo: 'الأجهزة المسجلة',
+      viewDeviceInfo: 'عرض معلومات الجهاز',
+      close: 'إغلاق',
+      welcomeGuest: 'أهلاً وسهلاً',
+      loadingGuestInfo: 'جاري تحميل معلومات الضيف...'
     },
     en: {
       title: 'Al Zaher & Al Otaibi Wedding',
@@ -230,7 +242,15 @@ export default function Light(){
       finalMessage: 'With all our love and joy, we invite you to share these special moments in our journey',
       deviceLimit: 'Device Limit Reached',
       deviceLimitMessage: 'Maximum devices reached (only 2 devices allowed)',
-      devicesRegistered: 'Registered devices'
+      devicesRegistered: 'Registered devices',
+      deviceInfoTitle: 'Device Information',
+      deviceInfoMessage: 'This invitation is specific to certain devices. Each invitation can be used on only 2 devices to protect the privacy of the event.',
+      deviceInfoNote: 'If you are the original invitee, you can use one of the previously registered devices to respond to the invitation.',
+      deviceCountInfo: 'Registered Devices',
+      viewDeviceInfo: 'View Device Info',
+      close: 'Close',
+      welcomeGuest: 'Welcome',
+      loadingGuestInfo: 'Loading guest information...'
     },
   }[lang]), [lang])
 
@@ -421,15 +441,45 @@ export default function Light(){
     setIsRSVPOpen(true);
   }, [deviceAuthorized, t.deviceLimitMessage]);
 
-  // Show loading while checking device authorization
-  if (deviceAuthorized === null) {
+  // Show device info modal
+  const openDeviceInfoModal = useCallback(() => {
+    setShowDeviceInfoModal(true);
+  }, []);
+
+  // Show loading while checking device authorization and page loading
+  if (pageLoading || deviceAuthorized === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 180, 360]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="w-16 h-16 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto mb-6 flex items-center justify-center"
+          >
+            <span className="text-white text-2xl">💍</span>
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-gray-700 text-lg mb-2"
+          >
+            {t.loading}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-gray-500 text-sm"
+          >
             {lang === 'ar' ? 'جاري التحقق من الجهاز...' : 'Checking device authorization...'}
-          </p>
+          </motion.p>
         </div>
       </div>
     );
@@ -492,74 +542,92 @@ export default function Light(){
           {isPlaying ? t.pauseMusic : t.playMusic}
         </button>
 
-        {/* Manual RSVP Button */}
-        <button
-          onClick={openRSVPModal}
-          className="bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:bg-white transition-all duration-200"
-          style={{ 
-            color: deviceAuthorized === false ? '#EF4444' : '#8B7355',
-            borderColor: deviceAuthorized === false ? '#EF4444' : 'gray'
-          }}
-        >
-          {deviceAuthorized === false 
-            ? (lang === 'ar' ? '❌ تأكيد الحضور' : '❌ RSVP') 
-            : (!guestInfo?.attendance?.attending ? t.rsvp : t.updateRsvp)
-          }
-        </button>
+        {/* Manual RSVP Button - Hidden when device is not authorized */}
+        {deviceAuthorized !== false && (
+          <button
+            onClick={openRSVPModal}
+            className="bg-white/80 backdrop-blur-sm border border-gray-300 rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:bg-white transition-all duration-200"
+            style={{ color: '#8B7355' }}
+          >
+            {!guestInfo?.attendance?.attending ? t.rsvp : t.updateRsvp}
+          </button>
+        )}
       </div>
 
-      {/* Device Count Indicator */}
-      {deviceCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 left-4 z-50 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700 text-center shadow-lg"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-lg">📱</span>
-            <div>
-              <div className="font-semibold">
-                {lang === 'ar' ? 'الأجهزة المسجلة' : 'Registered Devices'}
-              </div>
-              <div className="text-xs">
-                {deviceCount}/2 {lang === 'ar' ? 'مسموح' : 'allowed'}
+      {/* Guest Welcome Banner - Only show when device is authorized */}
+      <AnimatePresence>
+        {deviceAuthorized === true && guestInfo?.name && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-4 right-4 z-50"
+          >
+            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-lg rounded-2xl p-4 shadow-2xl border border-white/30">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full p-2 bg-white/20">
+                  <span className="text-xl">👑</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-white text-sm drop-shadow-lg">
+                    {t.welcomeGuest}
+                  </p>
+                  <p className="text-white/90 font-bold text-lg mt-1 drop-shadow-lg">
+                    {guestInfo.name}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="w-full bg-blue-200 rounded-full h-1 mt-1">
-            <div 
-              className="bg-blue-600 h-1 rounded-full transition-all duration-500"
-              style={{ width: `${(deviceCount / 2) * 100}%` }}
-            ></div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Guest Welcome Message */}
-      {guestInfo && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 6 }}
-          className="fixed top-4 right-4 z-50 bg-white/5 backdrop-blur-xs rounded-lg p-4 shadow-lg border"
-        >
-          <p className="text-sm font-semibold bg-transparent" style={{ color: '#2F4F4F' }}>
-            {t.welcome}
-          </p>
-          <p className="text-lg font-bold bg-transparent" style={{ color: '#B8860B' }}>
-            {guestInfo.name}
-          </p>
-        </motion.div>
-      )}
+      {/* Device Count Indicator - Only show when device is NOT authorized */}
+      <AnimatePresence>
+        {deviceAuthorized === false && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 right-4 z-50"
+          >
+            <div 
+              className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-lg cursor-pointer hover:bg-red-100 transform hover:scale-105 transition-all duration-300"
+              onClick={openDeviceInfoModal}
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-full p-2 bg-red-100 text-red-600">
+                  <span>⚠️</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-red-800 text-sm">
+                    {t.deviceLimit}
+                  </p>
+                  <p className="text-red-600 text-xs">
+                    {deviceCount}/2 {lang === 'ar' ? 'مسموح' : 'allowed'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                <div 
+                  className="h-1.5 rounded-full bg-red-500 transition-all duration-500"
+                  style={{ width: `${(deviceCount / 2) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Device Limit Warning Banner */}
       {deviceAuthorized === false && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg max-w-md mx-auto"
+          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg max-w-md mx-auto"
         >
           <div className="flex items-center gap-3">
             <div className="text-red-500 text-xl">⚠️</div>
@@ -757,6 +825,102 @@ export default function Light(){
           guestName={guestInfo?.name}
           currentResponse={guestInfo?.response}
         />
+      )}
+
+      {/* Device Information Modal */}
+      {showDeviceInfoModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowDeviceInfoModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ 
+              type: "spring", 
+              damping: 25, 
+              stiffness: 300,
+              duration: 0.3
+            }}
+            className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full border border-red-200"
+            onClick={(e) => e.stopPropagation()}
+            dir={lang === 'ar' ? 'rtl' : 'ltr'}
+          >
+            {/* Header */}
+            <div className="bg-red-50 border-b border-red-200 rounded-t-2xl p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-red-600 text-xl">⚠️</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-red-800 font-arabic">
+                    {t.deviceInfoTitle}
+                  </h3>
+                  <p className="text-red-600 text-sm mt-1 font-arabic">
+                    {t.deviceLimit}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-yellow-600 text-lg mt-0.5">💡</span>
+                  <div>
+                    <p className="text-yellow-800 text-sm font-medium font-arabic">
+                      {t.deviceInfoMessage}
+                    </p>
+                    <p className="text-yellow-700 text-xs mt-2 font-arabic">
+                      {t.deviceInfoNote}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-800 text-sm font-semibold font-arabic">
+                    {t.devicesRegistered}
+                  </span>
+                  <span className="text-blue-600 font-bold">
+                    {deviceCount}/2
+                  </span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-red-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${(deviceCount / 2) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p className="text-gray-700 text-sm font-arabic text-center">
+                  {lang === 'ar' 
+                    ? 'يمكنك الاستمتاع بمشاهدة الدعوة ولكن الرد عليها غير متاح على هذا الجهاز'
+                    : 'You can enjoy viewing the invitation but responding is not available on this device'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 p-6">
+              <button
+                onClick={() => setShowDeviceInfoModal(false)}
+                className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors font-arabic shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              >
+                {t.close}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   )

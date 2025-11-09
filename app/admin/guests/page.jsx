@@ -485,7 +485,7 @@ ${link}
                           e.stopPropagation();
                           setDeleteConfirm(guest);
                         }}
-                        className="opacity-0 group-hover:opacity-100 bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-all duration-200"
+                        className=" bg-red-100 text-red-600 p-2 rounded-lg  transition-all duration-200"
                         title="حذف الضيف"
                       >
                         🗑️
