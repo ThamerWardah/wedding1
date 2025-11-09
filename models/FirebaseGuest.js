@@ -1,7 +1,9 @@
 import {
   addDoc,
   collection,
-  doc,
+  deleteDoc,
+  doc, // ADD THIS IMPORT
+  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -150,6 +152,48 @@ export class FirebaseGuest {
     } catch (error) {
       console.error('❌ Error getting stats:', error)
       return { total: 0, confirmed: 0, declined: 0, pending: 0, totalGuests: 0 }
+    }
+  }
+
+  // ADD THIS NEW METHOD - Enables guest deletion
+  static async deleteByNumber(guestNumber) {
+    try {
+      if (!db) throw new Error('Firestore not initialized')
+
+      // Find the guest by number
+      const guest = await this.findByNumber(guestNumber)
+      if (!guest) {
+        console.log('ℹ️ Guest not found for deletion:', guestNumber)
+        return null
+      }
+
+      // Delete the guest document using the document ID
+      const guestRef = doc(db, 'guests', guest.id)
+      await deleteDoc(guestRef)
+
+      // Also delete any device registrations for this guest
+      try {
+        const deviceDocRef = doc(db, 'deviceRegistrations', guestNumber)
+        const deviceDoc = await getDoc(deviceDocRef)
+
+        if (deviceDoc.exists()) {
+          await deleteDoc(deviceDocRef)
+          console.log('✅ Device registrations deleted for:', guestNumber)
+        }
+      } catch (deviceError) {
+        console.log('ℹ️ No device registrations found for guest:', guestNumber)
+        // Continue even if device deletion fails
+      }
+
+      console.log('✅ Guest deleted successfully:', guestNumber)
+      return {
+        success: true,
+        guestNumber,
+        deletedGuest: guest.name,
+      }
+    } catch (error) {
+      console.error('❌ Error deleting guest:', error)
+      throw new Error(`Failed to delete guest: ${error.message}`)
     }
   }
 }

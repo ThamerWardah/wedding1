@@ -42,3 +42,39 @@ export async function PUT(request, { params }) {
     )
   }
 }
+
+// ADD THIS NEW METHOD - Handles guest deletion requests
+export async function DELETE(request, { params }) {
+  try {
+    // Await params in Next.js 14
+    const { guestNumber } = await params
+
+    if (!guestNumber) {
+      return NextResponse.json(
+        { error: 'Guest number is required' },
+        { status: 400 },
+      )
+    }
+
+    // Call the delete method from your FirebaseGuest model
+    const result = await FirebaseGuest.deleteByNumber(guestNumber)
+
+    if (!result) {
+      return NextResponse.json({ error: 'Guest not found' }, { status: 404 })
+    }
+
+    console.log(`✅ Guest ${guestNumber} deleted successfully`)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Guest deleted successfully',
+      deletedGuest: result.deletedGuest,
+    })
+  } catch (error) {
+    console.error('❌ Error deleting guest:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete guest: ' + error.message },
+      { status: 500 },
+    )
+  }
+}
