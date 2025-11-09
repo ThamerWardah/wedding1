@@ -226,44 +226,44 @@ ${link}
   }, [success]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 p-3" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4 border border-gray-100">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-green-700 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xl">👥</span>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-green-700 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm">👥</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800 mb-1 font-arabic">إدارة الضيوف</h1>
-                  <p className="text-gray-600 font-arabic">إضافة وإدارة قائمة المدعوين</p>
+                  <h1 className="text-lg font-bold text-gray-800 font-arabic">إدارة الضيوف</h1>
+                  <p className="text-gray-600 text-xs font-arabic">إضافة وإدارة قائمة المدعوين</p>
                 </div>
               </div>
               
               {/* Success/Error Messages */}
               {success && (
-                <div className="mb-3 p-3 bg-green-100 border border-green-300 rounded-xl">
-                  <p className="text-green-700 text-sm font-arabic flex items-center gap-2">
+                <div className="mb-2 p-2 bg-green-100 border border-green-300 rounded-lg">
+                  <p className="text-green-700 text-xs font-arabic flex items-center gap-1">
                     <span>✅</span> {success}
                   </p>
                 </div>
               )}
               
               {error && (
-                <div className="mb-3 p-3 bg-red-100 border border-red-300 rounded-xl">
-                  <p className="text-red-700 text-sm font-arabic flex items-center gap-2">
+                <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded-lg">
+                  <p className="text-red-700 text-xs font-arabic flex items-center gap-1">
                     <span>❌</span> {error}
                   </p>
                 </div>
               )}
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex">
               <button
                 onClick={() => router.push('/admin')}
-                className="bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                className="bg-blue-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors text-xs flex items-center gap-1 shadow-md"
               >
                 <span>📊</span>
                 لوحة الإحصائيات
@@ -273,18 +273,18 @@ ${link}
         </div>
 
         {/* Action Buttons */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
-          <div className="flex flex-wrap gap-3">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4 border border-gray-100">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-green-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors text-sm flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-green-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors text-xs flex items-center gap-1 shadow-md"
             >
               <span>➕</span>
               إضافة ضيف
             </button>
             <button
               onClick={() => setShowBulkForm(true)}
-              className="bg-purple-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors text-sm flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-purple-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors text-xs flex items-center gap-1 shadow-md"
             >
               <span>👥</span>
               إضافة جماعية
@@ -292,7 +292,7 @@ ${link}
             <button
               onClick={loadGuests}
               disabled={isLoading}
-              className="bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50"
+              className="bg-blue-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors text-xs flex items-center gap-1 shadow-md disabled:opacity-50"
             >
               <span>🔄</span>
               {isLoading ? 'جاري التحديث...' : 'تحديث القائمة'}
@@ -302,56 +302,56 @@ ${link}
 
         {/* Add Guest Form */}
         {showAddForm && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800 font-arabic">إضافة ضيف جديد</h3>
+          <div className="bg-white rounded-xl shadow-md p-4 mb-4 border border-gray-100">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-bold text-gray-800 font-arabic">إضافة ضيف جديد</h3>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-400 hover:text-gray-600 text-lg"
               >
                 ✕
               </button>
             </div>
             
-            <form onSubmit={handleAddGuest} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleAddGuest} className="space-y-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-arabic">الاسم الكامل *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 font-arabic">الاسم الكامل *</label>
                   <input
                     type="text"
                     required
                     value={newGuest.name}
                     onChange={(e) => setNewGuest({...newGuest, name: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
                     placeholder="أدخل الاسم الكامل"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-arabic">رقم الهاتف</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 font-arabic">رقم الهاتف</label>
                   <input
                     type="tel"
                     value={newGuest.phone}
                     onChange={(e) => setNewGuest({...newGuest, phone: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
                     placeholder="+966500000000"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-arabic">البريد الإلكتروني</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 font-arabic">البريد الإلكتروني</label>
                   <input
                     type="email"
                     value={newGuest.email}
                     onChange={(e) => setNewGuest({...newGuest, email: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
                     placeholder="email@example.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-arabic">المجموعة</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 font-arabic">المجموعة</label>
                   <select
                     value={newGuest.group}
                     onChange={(e) => setNewGuest({...newGuest, group: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors font-arabic"
                   >
                     <option value="General">عام</option>
                     <option value="Family">العائلة</option>
@@ -360,10 +360,10 @@ ${link}
                   </select>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-1 text-xs shadow-md"
                 >
                   <span>➕</span>
                   إضافة الضيف
@@ -371,7 +371,7 @@ ${link}
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center gap-1 text-xs shadow-md"
                 >
                   <span>✕</span>
                   إلغاء
@@ -383,39 +383,39 @@ ${link}
 
         {/* Bulk Add Form */}
         {showBulkForm && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800 font-arabic">إضافة ضيوف بشكل جماعي</h3>
+          <div className="bg-white rounded-xl shadow-md p-4 mb-4 border border-gray-100">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-bold text-gray-800 font-arabic">إضافة ضيوف بشكل جماعي</h3>
               <button
                 onClick={() => setShowBulkForm(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-400 hover:text-gray-600 text-lg"
               >
                 ✕
               </button>
             </div>
             
-            <form onSubmit={handleBulkAdd} className="space-y-4">
+            <form onSubmit={handleBulkAdd} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 font-arabic">
+                <label className="block text-xs font-medium text-gray-700 mb-1 font-arabic">
                   أسماء الضيوف (اسم كل ضيف في سطر مستقل)
                 </label>
                 <textarea
                   value={bulkGuests}
                   onChange={(e) => setBulkGuests(e.target.value)}
-                  rows={8}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors font-arabic"
+                  rows={6}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors font-arabic"
                   placeholder="أحمد محمد
 فاطمة عبدالله
 خالد إبراهيم"
                 />
-                <p className="text-xs text-gray-500 mt-2 font-arabic">
+                <p className="text-xs text-gray-500 mt-1 font-arabic">
                   أدخل اسم كل ضيف في سطر مستقل. سيتم إنشاء رقم دعوة تلقائي لكل ضيف.
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center gap-1 text-xs shadow-md"
                 >
                   <span>👥</span>
                   إضافة الضيوف
@@ -423,7 +423,7 @@ ${link}
                 <button
                   type="button"
                   onClick={() => setShowBulkForm(false)}
-                  className="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center gap-1 text-xs shadow-md"
                 >
                   <span>✕</span>
                   إلغاء
@@ -434,39 +434,39 @@ ${link}
         )}
 
         {/* Guests List */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800 font-arabic">الضيوف المضافين ({guests.length})</h2>
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-base font-bold text-gray-800 font-arabic">الضيوف المضافين ({guests.length})</h2>
           </div>
           
           {isLoading ? (
-            <div className="p-8 text-center text-gray-500">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-              <p className="text-sm font-arabic">جاري تحميل قائمة الضيوف...</p>
+            <div className="p-6 text-center text-gray-500">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
+              <p className="text-xs font-arabic">جاري تحميل قائمة الضيوف...</p>
             </div>
           ) : guests.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <div className="text-4xl mb-3">👥</div>
-              <p className="text-sm font-arabic">لا توجد ضيوف مضافة حتى الآن.</p>
+            <div className="p-6 text-center text-gray-500">
+              <div className="text-2xl mb-2">👥</div>
+              <p className="text-xs font-arabic">لا توجد ضيوف مضافة حتى الآن.</p>
               <p className="text-xs mt-1 font-arabic">استخدم أزرار الإضافة أعلاه لإضافة ضيوف.</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
               {guests.map((guest) => (
-                <div key={guest.guestNumber} className="p-6 hover:bg-blue-50/30 transition-all duration-200 group">
-                  <div className="flex justify-between items-start mb-3">
+                <div key={guest.guestNumber} className="p-3 hover:bg-blue-50/30 transition-all duration-200 group">
+                  <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900 text-lg font-arabic">{guest.name}</h3>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-arabic">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-gray-900 text-sm font-arabic">{guest.name}</h3>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full font-arabic">
                           #{guest.guestNumber}
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="text-xs bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-arabic">
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        <span className="text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full font-arabic">
                           {guest.group}
                         </span>
-                        <span className={`text-xs px-3 py-1 rounded-full font-arabic ${
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-arabic ${
                           guest.status === 'confirmed' 
                             ? 'bg-green-100 text-green-800 border border-green-200'
                             : guest.status === 'declined'
@@ -478,14 +478,14 @@ ${link}
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {/* Delete Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteConfirm(guest);
                         }}
-                        className=" bg-red-100 text-red-600 p-2 rounded-lg  transition-all duration-200"
+                        className="bg-red-100 text-red-600 p-1 rounded-md transition-all duration-200 text-xs"
                         title="حذف الضيف"
                       >
                         🗑️
@@ -495,15 +495,15 @@ ${link}
                   
                   {/* Contact Info */}
                   {(guest.phone || guest.email) && (
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-1 mb-2">
                       {guest.phone && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center gap-1">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full flex items-center gap-1">
                           <span>📞</span>
                           {guest.phone}
                         </span>
                       )}
                       {guest.email && (
-                        <span className="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full flex items-center gap-1">
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full flex items-center gap-1">
                           <span>✉️</span>
                           {guest.email}
                         </span>
@@ -512,17 +512,17 @@ ${link}
                   )}
                   
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1">
                     <button
                       onClick={() => copyInvitationLink(guest.guestNumber)}
-                      className="text-xs bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                      className="text-xs bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1 shadow-md"
                     >
                       <span>📋</span>
                       نسخ الرابط
                     </button>
                     <button
                       onClick={() => sendInvitation(guest)}
-                      className="text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                      className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1 shadow-md"
                     >
                       <span>📤</span>
                       إرسال الدعوة
@@ -531,8 +531,8 @@ ${link}
 
                   {/* Attendance Info */}
                   {guest.attendance && (
-                    <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                      <p className="text-sm text-gray-700 font-arabic">
+                    <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-xs text-gray-700 font-arabic">
                         <strong>الرد:</strong> {guest.attendance.guestsCount} ضيوف
                         {guest.attendance.message && ` | الرسالة: "${guest.attendance.message}"`}
                       </p>
@@ -548,31 +548,31 @@ ${link}
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full" dir="rtl">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                  <span className="text-red-600 text-lg">⚠️</span>
+          <div className="bg-white rounded-xl max-w-xs w-full" dir="rtl">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-red-600 text-sm">⚠️</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 font-arabic">تأكيد الحذف</h3>
+                <h3 className="text-base font-semibold text-gray-900 font-arabic">تأكيد الحذف</h3>
               </div>
-              <p className="text-gray-600 text-sm font-arabic">
+              <p className="text-gray-600 text-xs font-arabic">
                 هل أنت متأكد من رغبتك في حذف الضيف <strong>{deleteConfirm.name}</strong>؟
                 <br />
                 <span className="text-red-600">هذا الإجراء لا يمكن التراجع عنه.</span>
               </p>
             </div>
             
-            <div className="p-6 flex gap-3">
+            <div className="p-4 flex gap-2">
               <button
                 onClick={() => deleteGuest(deleteConfirm.guestNumber)}
-                className="flex-1 bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors font-arabic shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 transition-colors font-arabic text-xs shadow-md"
               >
                 نعم، احذف
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 bg-gray-600 text-white py-3 rounded-xl font-semibold hover:bg-gray-700 transition-colors font-arabic shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                className="flex-1 bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors font-arabic text-xs shadow-md"
               >
                 إلغاء
               </button>

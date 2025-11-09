@@ -562,18 +562,15 @@ export default function Light(){
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.8 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed top-4 right-4 z-50"
+            className="fixed top-4 right-4 z-[500]"
           >
-            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-lg rounded-2xl p-4 shadow-2xl border border-white/30">
+            <div className="bg-white/10 rounded-2xl p-2 shadow-2xl border border-white/30">
               <div className="flex items-center gap-3">
-                <div className="rounded-full p-2 bg-white/20">
-                  <span className="text-xl">👑</span>
-                </div>
                 <div className="text-right">
-                  <p className="font-semibold text-white text-sm drop-shadow-lg">
+                  <p className="font-semibold text-black text-sm drop-shadow-lg">
                     {t.welcomeGuest}
                   </p>
-                  <p className="text-white/90 font-bold text-lg mt-1 drop-shadow-lg">
+                  <p className="text-black/90 font-bold text-lg mt-1 drop-shadow-lg">
                     {guestInfo.name}
                   </p>
                 </div>
@@ -590,58 +587,24 @@ export default function Light(){
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 z-50"
+            className="fixed top-4 right-4  z-[500] text-xs bg-transparent animate-pulse max-w-1/5"
           >
-            <div 
-              className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-lg cursor-pointer hover:bg-red-100 transform hover:scale-105 transition-all duration-300"
+            <button
+              className="bg-red-50/30 border border-red-200 rounded-2xl p-4 shadow-lg cursor-pointer hover:bg-red-100 transform hover:scale-105 transition-all duration-300 z-[9000] "
               onClick={openDeviceInfoModal}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-3">
                 <div className="rounded-full p-2 bg-red-100 text-red-600">
-                  <span>⚠️</span>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-red-800 text-sm">
-                    {t.deviceLimit}
-                  </p>
-                  <p className="text-red-600 text-xs">
-                    {deviceCount}/2 {lang === 'ar' ? 'مسموح' : 'allowed'}
-                  </p>
+                  <div className="text-lg">⚠️</div>
+                  <div></div>
                 </div>
               </div>
               
-              {/* Progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                <div 
-                  className="h-1.5 rounded-full bg-red-500 transition-all duration-500"
-                  style={{ width: `${(deviceCount / 2) * 100}%` }}
-                ></div>
-              </div>
-            </div>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Device Limit Warning Banner */}
-      {deviceAuthorized === false && (
-        <motion.div
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg max-w-md mx-auto"
-        >
-          <div className="flex items-center gap-3">
-            <div className="text-red-500 text-xl">⚠️</div>
-            <div>
-              <p className="text-red-800 font-semibold text-sm">
-                {t.deviceLimit}
-              </p>
-              <p className="text-red-600 text-xs">
-                {t.deviceLimitMessage}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* Header Section */}
       <motion.div
