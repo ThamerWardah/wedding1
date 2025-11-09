@@ -30,44 +30,6 @@ export default function Light(){
   // Wedding date
   const WEDDING_DATE = new Date('2025-12-19T19:00:00')
 
-  // Device fingerprint and authorization
-  useEffect(() => {
-    const checkDeviceAuthorization = async () => {
-      try {
-        // Generate device fingerprint
-        const fingerprint = generateDeviceFingerprint();
-        
-        const response = await fetch('/api/device/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fingerprint: fingerprint,
-            userAgent: navigator.userAgent,
-            guestNumber: guestNumber || 'default'
-          }),
-        });
-
-        const data = await response.json();
-        
-        setDeviceCount(data.deviceCount || 0);
-        
-        if (data.authorized) {
-          setDeviceAuthorized(true);
-        } else {
-          setDeviceAuthorized(false);
-        }
-      } catch (error) {
-        console.error('Device authorization check failed:', error);
-        // Allow access but don't auto-open modal if check fails
-        setDeviceAuthorized(true);
-      }
-    };
-
-    checkDeviceAuthorization();
-  }, [guestNumber]);
-
   // Device fingerprint function
   const generateDeviceFingerprint = () => {
     const components = [];
@@ -83,6 +45,56 @@ export default function Light(){
     const fingerprintString = components.join('|');
     return btoa(fingerprintString).substring(0, 32);
   };
+
+  // Get or create device ID from localStorage
+  const getDeviceId = () => {
+    if (typeof window === 'undefined') return generateDeviceFingerprint();
+    
+    let deviceId = localStorage.getItem('wedding_device_id');
+    if (!deviceId) {
+      deviceId = generateDeviceFingerprint();
+      localStorage.setItem('wedding_device_id', deviceId);
+    }
+    return deviceId;
+  };
+
+  // Device fingerprint and authorization with Firebase
+  useEffect(() => {
+    const checkDeviceAuthorization = async () => {
+      try {
+        const deviceId = getDeviceId();
+        
+        const response = await fetch('/api/device/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fingerprint: deviceId,
+            userAgent: navigator.userAgent,
+            guestNumber: guestNumber || 'default'
+          }),
+        });
+
+        const data = await response.json();
+        
+        setDeviceCount(data.deviceCount || 0);
+        
+        if (data.authorized) {
+          setDeviceAuthorized(true);
+        } else {
+          setDeviceAuthorized(false);
+        }
+
+      } catch (error) {
+        console.error('Device authorization check failed:', error);
+        // Allow access if check fails
+        setDeviceAuthorized(true);
+      }
+    };
+
+    checkDeviceAuthorization();
+  }, [guestNumber]);
 
   // Fetch guest information when guestNumber is available
   useEffect(() => {
@@ -106,7 +118,7 @@ export default function Light(){
     fetchGuestInfo()
   }, [guestNumber])
 
-    // Auto-open modal after 5 seconds
+  // Auto-open modal after 10 seconds
   useEffect(() => {
     setTimeout(() =>showNotshow(), 10000)
   }, [guestInfo?.name])
@@ -501,12 +513,27 @@ export default function Light(){
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 left-4 z-50 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs text-blue-700 text-center"
+          className="fixed top-4 left-4 z-50 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700 text-center shadow-lg"
         >
-          {lang === 'ar' 
-            ? `الأجهزة: ${deviceCount}/2` 
-            : `Devices: ${deviceCount}/2`
-          }
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📱</span>
+            <div>
+              <div className="font-semibold">
+                {lang === 'ar' ? 'الأجهزة المسجلة' : 'Registered Devices'}
+              </div>
+              <div className="text-xs">
+                {deviceCount}/2 {lang === 'ar' ? 'مسموح' : 'allowed'}
+              </div>
+            </div>
+          </div>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-blue-200 rounded-full h-1 mt-1">
+            <div 
+              className="bg-blue-600 h-1 rounded-full transition-all duration-500"
+              style={{ width: `${(deviceCount / 2) * 100}%` }}
+            ></div>
+          </div>
         </motion.div>
       )}
 
