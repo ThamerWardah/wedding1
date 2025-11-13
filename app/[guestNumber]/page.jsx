@@ -786,7 +786,7 @@ export default function Light(){
           isOpen={isRSVPOpen}
           guestNumber={guestNumber}
           guestName={guestInfo?.name}
-          currentResponse={guestInfo?.response}
+          currentResponse={guestInfo?.attendance}
         />
       )}
 
