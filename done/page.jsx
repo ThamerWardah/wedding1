@@ -27,7 +27,6 @@ export default function Light(){
   const [deviceCount, setDeviceCount] = useState(0)
   const [showDeviceInfoModal, setShowDeviceInfoModal] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
-  const [hasAutoOpened, setHasAutoOpened] = useState(false) // Prevent multiple auto-opens
   const audioRef = useRef(null)
 
   // Wedding date
@@ -123,18 +122,17 @@ export default function Light(){
     fetchGuestInfo()
   }, [guestNumber])
 
-  // Auto-open modal after 10 seconds - only once and when conditions are met
+  // Auto-open modal after 10 seconds
   useEffect(() => {
-    const autoOpenTimer = setTimeout(() => {
-      if (!hasAutoOpened && deviceAuthorized === true && guestInfo && !guestInfo?.attendance?.attending) {
-        setIsRSVPOpen(true);
-        setHasAutoOpened(true);
-      }
-    }, 10000);
-
-    return () => clearTimeout(autoOpenTimer);
-  }, [guestInfo, deviceAuthorized, hasAutoOpened]);
+    setTimeout(() =>showNotshow(), 10000)
+  }, [guestInfo?.name])
   
+  const showNotshow = ()=>{
+    if(guestInfo!==null && deviceAuthorized === true){
+      !guestInfo?.attendance?.attending ? setIsRSVPOpen(true) : null
+    }
+  }
+
   // Detect iOS on component mount
   useEffect(() => {
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window ).MSStream
@@ -433,27 +431,6 @@ export default function Light(){
   const toggleLanguage = useCallback(() => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar')
   }, [])
-
-  // Handle RSVP modal close - refresh guest info if submission was successful
-  const handleRSVPClose = useCallback((submitted = false) => {
-    setIsRSVPOpen(false);
-    
-    // If submission was successful, refresh guest info to get updated attendance
-    if (submitted && guestNumber) {
-      const refreshGuestInfo = async () => {
-        try {
-          const response = await fetch(`/api/guests/${guestNumber}`)
-          if (response.ok) {
-            const updatedGuestData = await response.json()
-            setGuestInfo(updatedGuestData)
-          }
-        } catch (error) {
-          console.error('Error refreshing guest info:', error)
-        }
-      }
-      refreshGuestInfo();
-    }
-  }, [guestNumber]);
 
   // Open RSVP modal function with device check
   const openRSVPModal = useCallback(() => {
@@ -804,7 +781,7 @@ export default function Light(){
       {/* RSVP Modal - Only shows if device is authorized */}
       {deviceAuthorized === true && (
         <RSVPModal 
-          onClose={handleRSVPClose}
+          onClose={() => setIsRSVPOpen(false)}
           lang={lang}
           isOpen={isRSVPOpen}
           guestNumber={guestNumber}
