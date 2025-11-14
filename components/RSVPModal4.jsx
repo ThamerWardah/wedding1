@@ -63,7 +63,7 @@ export default function RSVPModal({
       person: 'شخص',
       people: 'أشخاص',
       required: 'مطلوب',
-      childrenInfo: 'تذكير لطيف',
+      childrenInfo: 'ضيفنا الكريم',
       childrenNote: 'لضمان استمتاع جميع الضيوف بالحفل، نرجو أن يكون هذا اليوم للكبار فقط'
     },
     en: {
@@ -95,7 +95,7 @@ export default function RSVPModal({
       error: 'Error submitting RSVP:',
       person: 'person',
       people: 'people',
-      childrenInfo: 'A Gentle Reminder',
+      childrenInfo: 'Our Honored Guest',
       childrenNote: 'To ensure all guests can relax and enjoy the celebration, we kindly request this to be an adults-only occasion',
       required: 'required'
     }
@@ -452,9 +452,7 @@ export default function RSVPModal({
                       </div>
                     </div>
                   )}
-<input
-onChange={(e)=>console.log(e.target.value)}
-className='bg-gray-100 rounded-md p-4 m-5'/>
+
                   {/* Message */}
                   <div>
                     <label 
