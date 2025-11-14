@@ -15,7 +15,6 @@ export default function RSVPModal({
   const [attending, setAttending] = useState(null);
   const [guests, setGuests] = useState(1);
   const [message, setMessage] = useState('');
-  const [childrenAllowed, setChildrenAllowed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
@@ -49,8 +48,6 @@ export default function RSVPModal({
       noLabel: 'معذرة، لن أتمكن',
       guestsCount: 'عدد الضيوف',
       guestsNote: 'يشمل العدد نفسك',
-      childrenInfo: 'معلومة هامة',
-      childrenNote: 'نرجو العلم أن الحفل للكبار فقط',
       message: 'رسالة للعروسين',
       messagePlaceholder: 'اكتب رسالة تهنئة للعروسين...',
       submit: 'تأكيد الحضور',
@@ -65,7 +62,9 @@ export default function RSVPModal({
       error: 'حدث خطأ في إرسال التأكيد:',
       person: 'شخص',
       people: 'أشخاص',
-      required: 'مطلوب'
+      required: 'مطلوب',
+      childrenInfo: 'تذكير لطيف',
+      childrenNote: 'لضمان استمتاع جميع الضيوف بالحفل، نرجو أن يكون هذا اليوم للكبار فقط'
     },
     en: {
       title: 'Will You Join Our Celebration?',
@@ -82,8 +81,6 @@ export default function RSVPModal({
       noLabel: "Sorry, I can't make it",
       guestsCount: 'Number of Guests',
       guestsNote: 'Includes yourself',
-      childrenInfo: 'Important Information',
-      childrenNote: 'Please note this is an adults-only celebration',
       message: 'Message for the Couple',
       messagePlaceholder: 'Write a congratulations message for the couple...',
       submit: 'Confirm Attendance',
@@ -98,6 +95,8 @@ export default function RSVPModal({
       error: 'Error submitting RSVP:',
       person: 'person',
       people: 'people',
+      childrenInfo: 'A Gentle Reminder',
+      childrenNote: 'To ensure all guests can relax and enjoy the celebration, we kindly request this to be an adults-only occasion',
       required: 'required'
     }
   };
@@ -108,17 +107,14 @@ export default function RSVPModal({
   // Initialize form with current response if available
   useEffect(() => {
     if (currentResponse) {
-      console.log("This is the message +======@@@@@@@@@@@@@=======+",currentResponse.message,"\n This is the CurrentResponse",JSON.stringify(currentResponse))
-      setAttending(currentResponse?.attending ? 'yes' : 'no');
-      setGuests(currentResponse?.guestsCount || 1);
-      setMessage(currentResponse?.message || '');
-      setChildrenAllowed(currentResponse?.childrenAllowed || false);
+      setAttending(currentResponse.attending ? 'yes' : 'no');
+      setGuests(currentResponse.guestsCount || 1);
+      setMessage(currentResponse.message || '');
       setIsUpdate(true);
     } else {
       setAttending(null);
       setGuests(1);
       setMessage('');
-      setChildrenAllowed(false);
       setIsUpdate(false);
     }
     
@@ -142,8 +138,7 @@ export default function RSVPModal({
         name: guestName || name,
         attending: attending === 'yes',
         guestsCount: attending === 'yes' ? guests : 0,
-        message: message.trim(),
-        childrenAllowed: attending === 'yes' ? childrenAllowed : false
+        message
       };
 
       let response;
@@ -196,7 +191,6 @@ export default function RSVPModal({
     setAttending(null);
     setGuests(1);
     setMessage('');
-    setChildrenAllowed(false);
     setIsUpdate(false);
   };
 
@@ -217,7 +211,7 @@ export default function RSVPModal({
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={handleClose}
         >
-          {/* Compact Modal Container */}
+          {/* Floating Modal Container */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -236,7 +230,7 @@ export default function RSVPModal({
             onClick={(e) => e.stopPropagation()}
             dir={isRTL ? 'rtl' : 'ltr'}
           >
-            {/* Compact Header */}
+            {/* Classic Header */}
             <div 
               className="p-4 border-b"
               style={{ 
@@ -260,16 +254,16 @@ export default function RSVPModal({
                 
                 {guestName && (
                   <div 
-                    className="mt-3 p-2 rounded border text-xs"
+                    className="mt-3 p-2 rounded-lg border"
                     style={{ 
                       borderColor: colors.accent,
                       backgroundColor: `${colors.accent}10`
                     }}
                   >
-                    <p className="font-medium" style={{ color: colors.secondary }}>
+                    <p className="text-xs font-medium" style={{ color: colors.secondary }}>
                       {t.specialInvitation}
                     </p>
-                    <p className="font-serif font-semibold mt-1" style={{ color: colors.accent }}>
+                    <p className="font-serif font-semibold mt-1 text-sm" style={{ color: colors.accent }}>
                       {guestName}
                     </p>
                   </div>
@@ -365,13 +359,13 @@ export default function RSVPModal({
                       <button
                         type="button"
                         onClick={() => setAttending('yes')}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 font-medium text-sm ${
+                        className={`p-3 rounded-lg border-2 transition-all duration-200 font-medium ${
                           attending === 'yes' 
                             ? 'border-green-600 bg-green-50 text-green-700' 
                             : 'border-gray-300 bg-white hover:border-green-400 text-gray-700'
                         }`}
                       >
-                        <div className="font-semibold">{t.yes}</div>
+                        <div className="font-semibold text-sm">{t.yes}</div>
                         <div className="text-xs mt-1 opacity-75">{t.yesLabel}</div>
                       </button>
 
@@ -379,13 +373,13 @@ export default function RSVPModal({
                       <button
                         type="button"
                         onClick={() => setAttending('no')}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 font-medium text-sm ${
+                        className={`p-3 rounded-lg border-2 transition-all duration-200 font-medium ${
                           attending === 'no' 
                             ? 'border-amber-600 bg-amber-50 text-amber-700' 
                             : 'border-gray-300 bg-white hover:border-amber-400 text-gray-700'
                         }`}
                       >
-                        <div className="font-semibold">{t.no}</div>
+                        <div className="font-semibold text-sm">{t.no}</div>
                         <div className="text-xs mt-1 opacity-75">{t.noLabel}</div>
                       </button>
                     </div>
@@ -418,7 +412,7 @@ export default function RSVPModal({
                         ))}
                       </select>
                       <p 
-                        className="text-xs mt-1 opacity-75"
+                        className="text-xs mt-1 opacity-70"
                         style={{ color: colors.text }}
                       >
                         {t.guestsNote}
@@ -428,9 +422,9 @@ export default function RSVPModal({
 
                   {/* Children Information - Only show if attending is yes */}
                   {attending === 'yes' && (
-                    <div className="pt-2">
+                    <div className="pt-1">
                       <div 
-                        className="p-3 rounded-lg border text-center"
+                        className="p-2 rounded-lg border text-center"
                         style={{ 
                           borderColor: colors.accent,
                           backgroundColor: `${colors.accent}08`
@@ -443,7 +437,7 @@ export default function RSVPModal({
                           {t.childrenInfo}
                         </p>
                         <p 
-                          className="text-xs"
+                          className="text-xs leading-tight"
                           style={{ color: colors.text }}
                         >
                           {t.childrenNote}
@@ -463,7 +457,7 @@ export default function RSVPModal({
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
+                      rows={2}
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 resize-none"
                       style={{ 
                         borderColor: colors.border,
@@ -472,11 +466,19 @@ export default function RSVPModal({
                       }}
                       placeholder={t.messagePlaceholder}
                       dir={isRTL ? 'rtl' : 'ltr'}
+                      onMouseDown={(e) => {
+                        // Stop propagation to prevent modal from closing
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        // Stop propagation for touch devices
+                        e.stopPropagation();
+                      }}
                     />
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="space-y-2 pt-3">
+                  <div className="space-y-2 pt-2">
                     {/* Submit Button */}
                     <button
                       type="submit"
