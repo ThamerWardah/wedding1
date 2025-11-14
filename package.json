@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@fontsource/amiri": "^5.2.8",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.0",
     "firebase": "^12.4.0",
     "framer-motion": "^12.23.24",
     "mongodb": "^6.20.0",

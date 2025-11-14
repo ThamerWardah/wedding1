@@ -464,7 +464,7 @@ export default function RSVPModal({
                     <textarea
                       value={message}
                       onChange={(e) =>setMessage(e.target.value)}
-                      rows={2}
+                      rows={4}
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 resize-none"
                       style={{ 
                         borderColor: colors.border,

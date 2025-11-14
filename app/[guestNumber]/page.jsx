@@ -130,7 +130,7 @@ export default function Light(){
         setIsRSVPOpen(true);
         setHasAutoOpened(true);
       }
-    }, 10000);
+    }, 28000);
 
     return () => clearTimeout(autoOpenTimer);
   }, [guestInfo, deviceAuthorized, hasAutoOpened]);
@@ -588,7 +588,7 @@ export default function Light(){
             initial={{ opacity: 0, y: -50, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.8 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25,delay: 7 }}
             className="fixed top-4 right-4 z-[500]"
           >
             <div className="bg-white/10 rounded-2xl p-2 shadow-2xl border border-white/30">
@@ -614,6 +614,7 @@ export default function Light(){
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            transition={{ delay: 7 }}
             className="fixed top-4 right-4  z-[500] text-xs bg-transparent animate-pulse max-w-1/5"
           >
             <button
