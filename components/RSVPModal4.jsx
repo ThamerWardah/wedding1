@@ -206,7 +206,7 @@ export default function RSVPModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[8000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={handleClose}
         >
           {/* Floating Modal Container */}
@@ -452,7 +452,9 @@ export default function RSVPModal({
                       </div>
                     </div>
                   )}
-
+<input
+onChange={(e)=>console.log(e.target.value)}
+className='bg-gray-100 rounded-md p-4 m-5'/>
                   {/* Message */}
                   <div>
                     <label 
@@ -463,7 +465,7 @@ export default function RSVPModal({
                     </label>
                     <textarea
                       value={message}
-                      onChange={(e) => setMessage(e.target.value)}
+                      onChange={(e) =>setMessage(e.target.value)}
                       rows={2}
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 resize-none"
                       style={{ 

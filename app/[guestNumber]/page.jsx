@@ -275,8 +275,8 @@ export default function Light(){
 
   // Enhanced user interaction handler for iOS
   const handleUserInteraction = useCallback((e) => {
-    if (e) {
-      e.preventDefault()
+    if (e && e.target.tagName === 'INPUT') {
+      return; // Don't handle input interactions
     }
     
     if (!userInteracted) {
@@ -310,6 +310,10 @@ export default function Light(){
 
   // Touch-specific handler for iOS
   const handleTouchStart = useCallback((e) => {
+    if (e.target.tagName === 'INPUT') {
+      return; // Don't handle input touches
+    }
+    
     e.preventDefault()
     handleUserInteraction()
   }, [handleUserInteraction])
@@ -511,11 +515,11 @@ export default function Light(){
   return (
     <div 
       className="bg-white w-screen min-h-screen text-blue-600 font-extrabold flex flex-col justify-center items-end p-2 gap-4"
-      onClick={handleUserInteraction}
-      onTouchStart={handleTouchStart}
-      onKeyDown={handleUserInteraction}
-      role="button"
-      tabIndex={0}
+      onClick={!userInteracted ? handleUserInteraction : undefined}
+      onTouchStart={!userInteracted ? handleTouchStart : undefined}
+      onKeyDown={!userInteracted ? handleUserInteraction : undefined}
+      role={!userInteracted ? "button" : undefined}
+      tabIndex={!userInteracted ? 0 : undefined}
       style={{
         fontFamily: "Amiri, serif",
         WebkitTapHighlightColor: 'transparent',

@@ -1,3 +1,4 @@
+'use client'
 import "@fontsource/amiri/400.css";
 import "@fontsource/amiri/700.css";
 export default function Bg(){
@@ -74,6 +75,9 @@ Here is the main text
 
 <div>#FAF3E0  #F5F5DC   #F3E5AB #E8D3B9 #D2B48C</div>
 
+<input
+onChange={(e)=>console.log(e.target.value)}
+className='bg-gray-100 rounded-md p-4 m-5'/>
         </div>
     )
 }
