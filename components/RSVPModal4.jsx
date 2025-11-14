@@ -222,7 +222,7 @@ export default function RSVPModal({
               stiffness: 300,
               duration: 0.3
             }}
-            className="relative bg-white rounded-xl shadow-2xl max-w-sm w-full max-h-[85vh] overflow-y-auto border"
+            className="relative bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border"
             style={{ 
               borderColor: colors.border,
               boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.1)'
@@ -232,7 +232,7 @@ export default function RSVPModal({
           >
             {/* Classic Header */}
             <div 
-              className="p-4 border-b"
+              className="p-6 border-b"
               style={{ 
                 borderColor: colors.border,
                 backgroundColor: colors.background
@@ -240,13 +240,13 @@ export default function RSVPModal({
             >
               <div className="text-center">
                 <h2 
-                  className="text-xl font-serif font-bold mb-1"
+                  className="text-2xl font-serif font-bold mb-2"
                   style={{ color: colors.secondary }}
                 >
                   {isUpdate ? t.updateTitle : t.title}
                 </h2>
                 <p 
-                  className="text-xs"
+                  className="text-sm"
                   style={{ color: colors.text }}
                 >
                   {isUpdate ? t.updateDeadline : t.deadline}
@@ -254,16 +254,16 @@ export default function RSVPModal({
                 
                 {guestName && (
                   <div 
-                    className="mt-3 p-2 rounded-lg border"
+                    className="mt-4 p-3 rounded-lg border"
                     style={{ 
                       borderColor: colors.accent,
                       backgroundColor: `${colors.accent}10`
                     }}
                   >
-                    <p className="text-xs font-medium" style={{ color: colors.secondary }}>
+                    <p className="text-sm font-medium" style={{ color: colors.secondary }}>
                       {t.specialInvitation}
                     </p>
-                    <p className="font-serif font-semibold mt-1 text-sm" style={{ color: colors.accent }}>
+                    <p className="font-serif font-semibold mt-1" style={{ color: colors.accent }}>
                       {guestName}
                     </p>
                   </div>
@@ -273,19 +273,19 @@ export default function RSVPModal({
 
             {isSubmitted ? (
               // Success State
-              <div className="p-6 text-center">
+              <div className="p-8 text-center">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                   style={{ 
                     backgroundColor: `${colors.success}20`,
                     border: `2px solid ${colors.success}`
                   }}
                 >
                   <svg 
-                    className="w-6 h-6"
+                    className="w-8 h-8"
                     style={{ color: colors.success }}
                     fill="none" 
                     stroke="currentColor" 
@@ -296,21 +296,21 @@ export default function RSVPModal({
                 </motion.div>
                 
                 <h3 
-                  className="text-lg font-serif font-bold mb-2"
+                  className="text-xl font-serif font-bold mb-2"
                   style={{ color: colors.success }}
                 >
                   {isUpdate ? t.updateSuccessTitle : t.successTitle}
                 </h3>
                 
                 <p 
-                  className="mb-3 text-sm"
+                  className="mb-4"
                   style={{ color: colors.text }}
                 >
                   {isUpdate ? t.updateSuccessMessage : t.successMessage}
                 </p>
                 
                 <p 
-                  className="text-xs italic"
+                  className="text-sm italic"
                   style={{ color: colors.primary }}
                 >
                   {t.excitement}
@@ -318,13 +318,13 @@ export default function RSVPModal({
               </div>
             ) : (
               // Form State
-              <form onSubmit={handleSubmit} className="p-4">
-                <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="p-6">
+                <div className="space-y-6">
                   {/* Name Input - Only show if no guestName provided */}
                   {!guestName && (
                     <div>
                       <label 
-                        className="block text-xs font-medium mb-1"
+                        className="block text-sm font-medium mb-2"
                         style={{ color: colors.secondary }}
                       >
                         {t.fullName}
@@ -334,7 +334,7 @@ export default function RSVPModal({
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200"
+                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200"
                         style={{ 
                           borderColor: colors.border,
                           backgroundColor: colors.background,
@@ -349,23 +349,23 @@ export default function RSVPModal({
                   {/* Attendance Selection */}
                   <div>
                     <label 
-                      className="block text-xs font-medium mb-2"
+                      className="block text-sm font-medium mb-3"
                       style={{ color: colors.secondary }}
                     >
                       {t.attendanceQuestion}
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {/* Yes Button */}
                       <button
                         type="button"
                         onClick={() => setAttending('yes')}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 font-medium ${
+                        className={`p-4 rounded-lg border-2 transition-all duration-200 font-medium ${
                           attending === 'yes' 
                             ? 'border-green-600 bg-green-50 text-green-700' 
                             : 'border-gray-300 bg-white hover:border-green-400 text-gray-700'
                         }`}
                       >
-                        <div className="font-semibold text-sm">{t.yes}</div>
+                        <div className="font-semibold">{t.yes}</div>
                         <div className="text-xs mt-1 opacity-75">{t.yesLabel}</div>
                       </button>
 
@@ -373,13 +373,13 @@ export default function RSVPModal({
                       <button
                         type="button"
                         onClick={() => setAttending('no')}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 font-medium ${
+                        className={`p-4 rounded-lg border-2 transition-all duration-200 font-medium ${
                           attending === 'no' 
                             ? 'border-amber-600 bg-amber-50 text-amber-700' 
                             : 'border-gray-300 bg-white hover:border-amber-400 text-gray-700'
                         }`}
                       >
-                        <div className="font-semibold text-sm">{t.no}</div>
+                        <div className="font-semibold">{t.no}</div>
                         <div className="text-xs mt-1 opacity-75">{t.noLabel}</div>
                       </button>
                     </div>
@@ -389,7 +389,7 @@ export default function RSVPModal({
                   {attending === 'yes' && (
                     <div>
                       <label 
-                        className="block text-xs font-medium mb-1"
+                        className="block text-sm font-medium mb-2"
                         style={{ color: colors.secondary }}
                       >
                         {t.guestsCount}
@@ -397,7 +397,7 @@ export default function RSVPModal({
                       <select
                         value={guests}
                         onChange={(e) => setGuests(Number(e.target.value))}
-                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200"
+                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200"
                         style={{ 
                           borderColor: colors.border,
                           backgroundColor: colors.background,
@@ -412,7 +412,7 @@ export default function RSVPModal({
                         ))}
                       </select>
                       <p 
-                        className="text-xs mt-1 opacity-70"
+                        className="text-xs mt-1"
                         style={{ color: colors.text }}
                       >
                         {t.guestsNote}
@@ -420,11 +420,12 @@ export default function RSVPModal({
                     </div>
                   )}
 
-                  {/* Children Information - Only show if attending is yes */}
+
+                                    {/* Children Information - Only show if attending is yes */}
                   {attending === 'yes' && (
-                    <div className="pt-1">
+                    <div className="pt-2">
                       <div 
-                        className="p-2 rounded-lg border text-center"
+                        className="p-3 rounded-lg border text-center"
                         style={{ 
                           borderColor: colors.accent,
                           backgroundColor: `${colors.accent}08`
@@ -437,7 +438,7 @@ export default function RSVPModal({
                           {t.childrenInfo}
                         </p>
                         <p 
-                          className="text-xs leading-tight"
+                          className="text-xs"
                           style={{ color: colors.text }}
                         >
                           {t.childrenNote}
@@ -449,7 +450,7 @@ export default function RSVPModal({
                   {/* Message */}
                   <div>
                     <label 
-                      className="block text-xs font-medium mb-1"
+                      className="block text-sm font-medium mb-2"
                       style={{ color: colors.secondary }}
                     >
                       {t.message}
@@ -457,8 +458,8 @@ export default function RSVPModal({
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      rows={2}
-                      className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 resize-none"
+                      rows={3}
+                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200 resize-none"
                       style={{ 
                         borderColor: colors.border,
                         backgroundColor: colors.background,
@@ -466,24 +467,16 @@ export default function RSVPModal({
                       }}
                       placeholder={t.messagePlaceholder}
                       dir={isRTL ? 'rtl' : 'ltr'}
-                      onMouseDown={(e) => {
-                        // Stop propagation to prevent modal from closing
-                        e.stopPropagation();
-                      }}
-                      onTouchStart={(e) => {
-                        // Stop propagation for touch devices
-                        e.stopPropagation();
-                      }}
                     />
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="space-y-2 pt-2">
+                  <div className="space-y-3 pt-4">
                     {/* Submit Button */}
                     <button
                       type="submit"
                       disabled={!(guestName || name.trim()) || !attending || isSubmitting}
-                      className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ 
                         backgroundColor: colors.primary,
                         color: 'white'
@@ -504,7 +497,7 @@ export default function RSVPModal({
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full"
+                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                           />
                           {t.submitting}
                         </div>
@@ -517,7 +510,7 @@ export default function RSVPModal({
                     <button
                       type="button"
                       onClick={handleClose}
-                      className="w-full py-2.5 rounded-lg font-medium text-sm transition-all duration-200 border"
+                      className="w-full py-3 rounded-lg font-medium transition-all duration-200 border"
                       style={{ 
                         borderColor: colors.border,
                         backgroundColor: 'transparent',
