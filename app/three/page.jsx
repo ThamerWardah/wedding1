@@ -578,14 +578,6 @@ function IraqiMap({ onMarkerClick, showVenue }) {
         isActive={showVenue}
       />
 
-      {/* Country labels */}
-      <Text position={[0, 1.8, 0.1]} fontSize={0.3} color="#FFD700" anchorX="center" anchorY="middle" fontWeight="bold">
-        العراق
-      </Text>
-      
-      <Text position={[0, 1.4, 0.1]} fontSize={0.15} color="#FEF3C7" anchorX="center" anchorY="middle">
-        خالد ❤️ بيان
-      </Text>
     </group>
   )
 }
