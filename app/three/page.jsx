@@ -621,7 +621,7 @@ function WeddingInfoDisplay({ position, visible }) {
         anchorY="middle"
         fontWeight="bold"
       >
-        خالد ❤️ بيان
+        خالد ❤️ بيار
       </Text>
       <Text
         position={[0, -0.22, 0]}
@@ -729,49 +729,37 @@ function FloatingNavigation({ currentImageIndex, totalImages, onNext, onPrev, on
   if (!showVenue) return null
 
   return (
-    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/40 shadow-2xl">
-        <div className="flex items-center justify-between gap-6 mb-3">
-          <button 
-            className="px-4 py-2 bg-cyan-600/40 hover:bg-cyan-600/60 border border-cyan-400/60 rounded-lg text-cyan-100 text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
-            onClick={onPrev}
-          >
-            ◀ السابق
-          </button>
-          
-          <div className="flex flex-col items-center">
-            <span className="text-yellow-200 text-sm font-semibold">
-              {currentImageIndex + 1} / {totalImages}
-            </span>
-            <span className="text-cyan-200 text-xs mt-1">
-              {showCouplePhotos ? 'خالد ❤️ بيان' : 'فندق جراند ميلينيوم'}
-            </span>
-          </div>
-          
-          <button 
-            className="px-4 py-2 bg-cyan-600/40 hover:bg-cyan-600/60 border border-cyan-400/60 rounded-lg text-cyan-100 text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
-            onClick={onNext}
-          >
-            التالي ▶
-          </button>
-        </div>
+  <div className="absolute bottom-3 left-3 right-3 z-50">
+    <div className="bg-black/95 backdrop-blur-2xl rounded-xl p-2 border border-cyan-500/60 shadow-2xl">
+      {/* Single row layout */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Previous button */}
+        <button 
+          className="px-2 py-1.5 bg-cyan-600/60 hover:bg-cyan-600/80 border border-cyan-400/80 rounded-lg text-cyan-100 text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 flex items-center gap-1 min-w-[60px] justify-center"
+          onClick={onPrev}
+        >
+          <span className="text-[8px]">◀</span>
+          <span>السابق</span>
+        </button>
         
-        <div className="flex gap-2 mb-2">
+        {/* Mode selector */}
+        <div className="flex gap-1 flex-1 justify-center">
           <button 
-            className={`flex-1 py-2 border rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+            className={`px-2 py-1.5 border rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 flex-1 max-w-[80px] ${
               !showCouplePhotos 
-                ? 'bg-cyan-600/60 border-cyan-400 text-cyan-100' 
-                : 'bg-cyan-600/20 border-cyan-400/30 text-cyan-200/70'
+                ? 'bg-cyan-600/80 border-cyan-400 text-cyan-100' 
+                : 'bg-cyan-600/40 border-cyan-400/50 text-cyan-200/90'
             }`}
             onClick={() => onToggleView('hotel')}
           >
             🏨 الفندق
           </button>
+          
           <button 
-            className={`flex-1 py-2 border rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+            className={`px-2 py-1.5 border rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 flex-1 max-w-[80px] ${
               showCouplePhotos 
-                ? 'bg-pink-600/60 border-pink-400 text-pink-100' 
-                : 'bg-pink-600/20 border-pink-400/30 text-pink-200/70'
+                ? 'bg-pink-600/80 border-pink-400 text-pink-100' 
+                : 'bg-pink-600/40 border-pink-400/50 text-pink-200/90'
             }`}
             onClick={() => onToggleView('couple')}
           >
@@ -779,15 +767,36 @@ function FloatingNavigation({ currentImageIndex, totalImages, onNext, onPrev, on
           </button>
         </div>
         
+        {/* Next button */}
         <button 
-          className="w-full py-2 bg-gradient-to-r from-purple-600/50 to-pink-600/50 hover:from-purple-600/70 hover:to-pink-600/70 border border-purple-400/60 rounded-lg text-white text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+          className="px-2 py-1.5 bg-cyan-600/60 hover:bg-cyan-600/80 border border-cyan-400/80 rounded-lg text-cyan-100 text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 flex items-center gap-1 min-w-[60px] justify-center"
+          onClick={onNext}
+        >
+          <span>التالي</span>
+          <span className="text-[8px]">▶</span>
+        </button>
+      </div>
+      
+      {/* Bottom row with counter and map button */}
+      <div className="flex items-center justify-between gap-2 mt-2">
+        <div className="text-cyan-200 text-[10px] font-medium">
+          {showCouplePhotos ? 'خالد ❤️ بيان' : 'فندق جراند ميلينيوم'}
+        </div>
+        
+        <div className="text-yellow-200 text-[10px] font-semibold">
+          {currentImageIndex + 1} / {totalImages}
+        </div>
+        
+        <button 
+          className="px-2 py-1 bg-gradient-to-r from-purple-600/70 to-pink-600/70 hover:from-purple-600/90 hover:to-pink-600/90 border border-purple-400/80 rounded-lg text-white text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30"
           onClick={() => onToggleView('map')}
         >
-          🌍 العودة إلى الخريطة
+          🌍 الخريطة
         </button>
       </div>
     </div>
-  )
+  </div>
+)
 }
 
 // Control Instructions Component
@@ -979,29 +988,14 @@ export default function IraqWeddingMap() {
 
       {/* Elegant Title */}
       <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-center">
-        <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-purple-300 mb-2">
-          خالد ❤️ بيان
+        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-purple-300 mb-2">
+          خالد ❤️ بيار
         </h1>
         <p className="text-white/80 text-sm mb-1">{WEDDING_INFO.date}</p>
         <p className="text-white/60 text-xs">{WEDDING_INFO.location}</p>
       </div>
 
-      {/* Wedding Invitation Text */}
-      <div className="absolute top-28 left-1/2 transform -translate-x-1/2 text-center pointer-events-none">
-        <div className="bg-transparent rounded-2xl p-4 max-w-xl">
-          <p className="text-white/90 text-xs leading-relaxed mb-3 font-light">
-            يشرفنا دعوتكم للمشاركة في يومنا الخاص.
-          </p>
-          <p className="text-white/80 text-xs leading-relaxed mb-3 font-light">
-            ستبدأ مراسم الزفاف الساعة 7:00 مساءً يوم الجمعة، 19 ديسمبر 2025، 
-            في فندق جراند ميلينيوم السيف البصرة، يليها العشاء الساعة 8:30 مساءً.
-          </p>
-          <p className="text-white/90 text-xs leading-relaxed font-light">
-            حضوركم يعني الكثير بالنسبة لنا، ونحن نتطلع للاحتفال معكم في هذا المساء الجميل.
-          </p>
-        </div>
-      </div>
-
+     
       {/* Control Instructions */}
       <ControlInstructions showVenue={showVenue} />
 
@@ -1029,7 +1023,7 @@ export default function IraqWeddingMap() {
       {!showVenue && !isTransitioning && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
           <p className="text-white/60 text-sm animate-pulse">
-            💫 انقر على المؤشر الذهبي لاكتشاف مفاجآت سحرية
+            💫 انقر على المؤشر الذهبي   
           </p>
         </div>
       )}
