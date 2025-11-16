@@ -36,7 +36,7 @@ export default function RSVPModal({
     ar: {
       title: 'هل ستشاركنا فرحتنا؟',
       updateTitle: 'تحديث الحضور',
-      deadline: 'نرجو التأكد قبل ١٠ يونيو ٢٠٢٥',
+      deadline: 'نرجو التأكد قبل  ٥ ديسمبر٢٠٢٥', 
       updateDeadline: 'يمكنك تحديث معلومات الحضور',
       specialInvitation: 'الدعوة خاصة بـ:',
       fullName: 'الاسم الكامل *',
