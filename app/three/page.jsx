@@ -87,8 +87,8 @@ const VENUE_VIEW_BOTH = {
 }
 
 // Frame positions - diagonal arrangement for mobile
-const HOTEL_POSITION = [-1.2, 1.2, -0.2]    // Top-left
-const COUPLE_POSITION = [1.2, -1.2, 0.2]    // Bottom-right
+const HOTEL_POSITION = [-0.7, 1.8, -0.4]    // Top-left
+const COUPLE_POSITION = [0.7, -0.8, 0.4]    // Bottom-right
 
 // Enhanced 3D Stars with Massive Count and Glowing Effects
 function SpaceStars() {
@@ -561,9 +561,9 @@ function HotelImageDisplay({ imageUrl, isVisible, imageIndex }) {
 
   if (!isVisible) return null
 
-  const frameWidth = 2.0 // Smaller for mobile
-  const frameHeight = 1.4
-  const frameThickness = 0.1
+  const frameWidth =2.8// 2.0 // Smaller for mobile
+  const frameHeight = 2.2//1.4
+  const frameThickness = 0.12
 
   return (
     <group ref={groupRef} position={HOTEL_POSITION}>
@@ -660,9 +660,9 @@ function CoupleImageDisplay({ imageUrl, isVisible, imageIndex }) {
 
   if (!isVisible) return null
 
-  const frameWidth = 1.8 // Smaller for mobile
-  const frameHeight = 1.3
-  const frameThickness = 0.1
+  const frameWidth =3  // 1.8 // Smaller for mobile
+  const frameHeight =2.3// 1.3
+  const frameThickness = 0.12
 
   return (
     <group ref={groupRef} position={COUPLE_POSITION}>
@@ -916,7 +916,7 @@ function CompactNavigation({
   if (!showVenue) return null
 
   return (
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[95%] max-w-[400px]">
+    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50 w-[95%] max-w-[400px]">
       <div className="bg-black/95 backdrop-blur-xl rounded-2xl p-3 border border-cyan-500/60 shadow-2xl">
         <div className="flex items-center justify-between gap-3">
           {/* Hotel Controls */}
