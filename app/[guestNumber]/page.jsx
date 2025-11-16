@@ -32,7 +32,7 @@ export default function Light(){
   const audioRef = useRef(null)
 
   // Wedding date
-  const WEDDING_DATE = new Date('2025-12-19T19:00:00')
+  const WEDDING_DATE = new Date('2025-12-19T16:00:00')
 
   // Device fingerprint function
   const generateDeviceFingerprint = () => {
@@ -193,7 +193,7 @@ export default function Light(){
       hours: 'ساعة',
       minutes: 'دقيقة',
       seconds: 'ثانية',
-      quote: 'من لُجَّ الكويت لشواطئ البصرة دانة الدُنا بين أيادي المَعشوق',
+      quote: 'من لُجَّ الكويت لشواطئ البصرة دانة الدُنا بين يدي المَعشوق',
       loading: 'جاري تحميل الدعوة...',
       preparing: 'استعدوا لأجمل ليلة في العمر',
       clickAnywhere: 'انقر في أي مكان',

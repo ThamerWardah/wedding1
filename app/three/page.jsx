@@ -23,10 +23,10 @@ const HOTEL_IMAGES = [
 
 // Couple photos
 const COUPLE_PHOTOS = [
-  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&h=600&fit=crop', // Couple smiling
-  'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&h=600&fit=crop', // Romantic couple
-  'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop', // Couple laughing
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=600&fit=crop', // Bride portrait
+  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&h=600&fit=crop',
+  'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&h=600&fit=crop',
+  'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=600&fit=crop',
 ]
 
 // Fallback colors for when images fail to load
@@ -81,9 +81,15 @@ const MAP_VIEW = {
   target: [0, 0, 0]
 }
 
-const VENUE_VIEW = {
-  position: [BASRA_WEDDING_LOCATION[0] + 2, BASRA_WEDDING_LOCATION[1] + 1, 4],
-  target: [BASRA_WEDDING_LOCATION[0], BASRA_WEDDING_LOCATION[1], 0.5]
+// Improved venue views with better positioning and zoom
+const VENUE_VIEW_HOTEL = {
+  position: [0, 0, 8],
+  target: [0, 0, 0]
+}
+
+const VENUE_VIEW_COUPLE = {
+  position: [0, 0, 7],
+  target: [0, 0, 0]
 }
 
 // Fixed Magical Particle System
@@ -128,13 +134,13 @@ function MagicalParticles({ count = 2000, isVenueView = false }) {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={count}
+          count={positions.length / 3}
           array={positions}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-color"
-          count={count}
+          count={colors.length / 3}
           array={colors}
           itemSize={3}
         />
@@ -152,12 +158,12 @@ function MagicalParticles({ count = 2000, isVenueView = false }) {
   )
 }
 
-// Fixed Floating Hearts Animation
+// Fixed Floating Hearts Animation - Using instanced mesh to avoid buffer issues
 function FloatingHearts({ isVenueView = false }) {
   const heartsRef = useRef()
+  const count = isVenueView ? 20 : 50
   
-  const hearts = useMemo(() => {
-    const count = isVenueView ? 20 : 50
+  const { positions, scales } = useMemo(() => {
     const positions = []
     const scales = []
     
@@ -171,22 +177,27 @@ function FloatingHearts({ isVenueView = false }) {
     }
     
     return { positions, scales }
-  }, [isVenueView])
+  }, [isVenueView, count])
 
   useFrame((state) => {
     if (heartsRef.current) {
       heartsRef.current.children.forEach((heart, i) => {
-        heart.position.y += Math.sin(state.clock.elapsedTime * 2 + i) * 0.01
-        heart.rotation.z = Math.sin(state.clock.elapsedTime * 3 + i) * 0.1
-        heart.scale.setScalar(hearts.scales[i] + Math.sin(state.clock.elapsedTime * 4 + i) * 0.05)
+        if (heart) {
+          heart.position.y += Math.sin(state.clock.elapsedTime * 2 + i) * 0.01
+          heart.rotation.z = Math.sin(state.clock.elapsedTime * 3 + i) * 0.1
+          heart.scale.setScalar(scales[i] + Math.sin(state.clock.elapsedTime * 4 + i) * 0.05)
+        }
       })
     }
   })
 
   return (
     <group ref={heartsRef}>
-      {hearts.positions.map((pos, i) => (
-        <mesh key={i} position={pos}>
+      {positions.map((_, i) => (
+        <mesh 
+          key={i} 
+          position={[positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]]}
+        >
           <sphereGeometry args={[0.1, 8, 6]} />
           <meshBasicMaterial 
             color={i % 2 === 0 ? "#ff6b6b" : "#ffd700"} 
@@ -269,80 +280,67 @@ function DeepSpaceStars({ isVenueView = false }) {
   )
 }
 
-// Fixed Shooting Stars
+// Fixed Shooting Stars - Completely rewritten to avoid buffer resizing
 function ShootingStars({ isVenueView = false }) {
-  const shootingStarsRef = useRef()
-  const positionsRef = useRef()
+  const groupRef = useRef()
+  const count = isVenueView ? 4 : 8
   
-  const { initialPositions, velocities } = useMemo(() => {
-    const count = isVenueView ? 4 : 8
-    const initialPositions = new Float32Array(count * 3)
-    const velocities = []
+  const stars = useMemo(() => {
+    const stars = []
     const range = isVenueView ? 100 : 200
     
     for (let i = 0; i < count; i++) {
-      const i3 = i * 3
-      initialPositions[i3] = (Math.random() - 0.5) * range
-      initialPositions[i3 + 1] = (Math.random() - 0.5) * range
-      initialPositions[i3 + 2] = 50 + Math.random() * (isVenueView ? 25 : 50)
-      
-      velocities.push(
-        (Math.random() - 0.5) * 0.5,
-        (Math.random() - 0.5) * 0.5,
-        -1 - Math.random() * 1
-      )
+      stars.push({
+        position: [
+          (Math.random() - 0.5) * range,
+          (Math.random() - 0.5) * range,
+          50 + Math.random() * (isVenueView ? 25 : 50)
+        ],
+        velocity: [
+          (Math.random() - 0.5) * 0.5,
+          (Math.random() - 0.5) * 0.5,
+          -1 - Math.random() * 1
+        ]
+      })
     }
     
-    return { initialPositions, velocities }
-  }, [isVenueView])
+    return stars
+  }, [isVenueView, count])
 
   useFrame((state) => {
-    if (shootingStarsRef.current && positionsRef.current) {
-      const positions = positionsRef.current.array
-      const count = isVenueView ? 4 : 8
-      
-      for (let i = 0; i < count; i++) {
-        const i3 = i * 3
-        const vIndex = i * 3
-        
-        positions[i3] += velocities[vIndex]
-        positions[i3 + 1] += velocities[vIndex + 1]
-        positions[i3 + 2] += velocities[vIndex + 2]
-        
-        if (positions[i3 + 2] < -50) {
-          const range = isVenueView ? 100 : 200
-          positions[i3] = (Math.random() - 0.5) * range
-          positions[i3 + 1] = (Math.random() - 0.5) * range
-          positions[i3 + 2] = 75 + Math.random() * (isVenueView ? 25 : 50)
+    if (groupRef.current) {
+      groupRef.current.children.forEach((star, i) => {
+        if (star && stars[i]) {
+          const velocity = stars[i].velocity
+          star.position.x += velocity[0]
+          star.position.y += velocity[1]
+          star.position.z += velocity[2]
+          
+          if (star.position.z < -50) {
+            const range = isVenueView ? 100 : 200
+            star.position.x = (Math.random() - 0.5) * range
+            star.position.y = (Math.random() - 0.5) * range
+            star.position.z = 75 + Math.random() * (isVenueView ? 25 : 50)
+          }
         }
-      }
-      
-      positionsRef.current.needsUpdate = true
+      })
     }
   })
 
   return (
-    <points>
-      <bufferGeometry>
-        <bufferAttribute
-          ref={positionsRef}
-          attach="attributes-position"
-          count={initialPositions.length / 3}
-          array={initialPositions}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={1.5}
-        color="#ffffff"
-        transparent
-        opacity={0.9}
-        sizeAttenuation={true}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-        fog={false}
-      />
-    </points>
+    <group ref={groupRef}>
+      {stars.map((star, i) => (
+        <mesh key={i} position={star.position}>
+          <sphereGeometry args={[0.05, 4, 4]} />
+          <meshBasicMaterial 
+            color="#ffffff" 
+            transparent 
+            opacity={0.9}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      ))}
+    </group>
   )
 }
 
@@ -419,8 +417,8 @@ function WeddingMarker({ position, onClick, isActive }) {
   )
 }
 
-// Enhanced Image Display Component
-function ImageDisplay({ position, imageUrl, isVisible, imageIndex, isCouplePhoto = false }) {
+// Enhanced Hotel Image Display Component
+function HotelImageDisplay({ imageUrl, isVisible, imageIndex }) {
   const meshRef = useRef()
   const groupRef = useRef()
   const frameRef = useRef()
@@ -428,26 +426,39 @@ function ImageDisplay({ position, imageUrl, isVisible, imageIndex, isCouplePhoto
   const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
-    if (isVisible && imageUrl) {
-      const loader = new THREE.TextureLoader()
-      loader.load(
-        imageUrl,
-        (loadedTexture) => {
+    if (!isVisible || !imageUrl) return
+
+    const loader = new THREE.TextureLoader()
+    let isMounted = true
+
+    loader.load(
+      imageUrl,
+      (loadedTexture) => {
+        if (isMounted) {
           setTexture(loadedTexture)
           setLoadError(false)
-        },
-        undefined,
-        () => {
+        }
+      },
+      undefined,
+      () => {
+        if (isMounted) {
           setLoadError(true)
           setTexture(null)
         }
-      )
+      }
+    )
+
+    return () => {
+      isMounted = false
+      if (texture) {
+        texture.dispose()
+      }
     }
-  }, [isVisible, imageUrl])
+  }, [imageUrl, isVisible])
 
   useFrame((state) => {
     if (groupRef.current && isVisible) {
-      groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.5) * 0.02
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
     }
     
     if (frameRef.current) {
@@ -457,39 +468,167 @@ function ImageDisplay({ position, imageUrl, isVisible, imageIndex, isCouplePhoto
 
   if (!isVisible) return null
 
-  const frameWidth = isCouplePhoto ? 3.5 : 3.2
-  const frameHeight = isCouplePhoto ? 2.5 : 2.2
-  const frameThickness = isCouplePhoto ? 0.15 : 0.1
+  const frameWidth = 4.5
+  const frameHeight = 3.2
+  const frameThickness = 0.15
 
   return (
-    <group ref={groupRef} position={position}>
-      {/* Thick Ornate Frame */}
+    <group ref={groupRef} position={[0, 0, 0]}>
+      {/* Luxurious Gold Frame */}
       <group ref={frameRef}>
         <mesh position={[0, 0, -frameThickness/2]}>
           <boxGeometry args={[frameWidth, frameHeight, frameThickness]} />
           <meshStandardMaterial
             color="#ffd700"
-            metalness={0.9}
-            roughness={0.1}
+            metalness={0.95}
+            roughness={0.05}
             emissive="#ffd700"
-            emissiveIntensity={0.3}
+            emissiveIntensity={0.4}
           />
         </mesh>
         
-        {/* Ornate corners */}
+        {/* Ornate corner decorations */}
         {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([x, y], i) => (
           <mesh key={i} position={[
-            x * (frameWidth/2 - 0.1),
-            y * (frameHeight/2 - 0.1),
+            x * (frameWidth/2 - 0.15),
+            y * (frameHeight/2 - 0.15),
             frameThickness/2 + 0.01
           ]}>
-            <sphereGeometry args={[0.15, 8, 6]} />
+            <torusGeometry args={[0.2, 0.05, 8, 12]} />
             <meshStandardMaterial
               color="#ff6b6b"
-              metalness={0.8}
-              roughness={0.2}
+              metalness={0.9}
+              roughness={0.1}
               emissive="#ff6b6b"
-              emissiveIntensity={0.5}
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Image */}
+      <mesh ref={meshRef} position={[0, 0, 0.02]}>
+        <planeGeometry args={[frameWidth - 0.4, frameHeight - 0.4]} />
+        <meshBasicMaterial 
+          map={texture}
+          transparent
+          opacity={1}
+          side={THREE.DoubleSide}
+          color={loadError ? FALLBACK_COLORS[imageIndex % FALLBACK_COLORS.length] : '#ffffff'}
+        />
+      </mesh>
+      
+      {/* Elegant blue glow around hotel image */}
+      <mesh rotation={[0, 0, 0]} position={[0, 0, 0.01]}>
+        <ringGeometry args={[frameWidth/2 - 0.1, frameWidth/2, 32]} />
+        <meshBasicMaterial
+          color="#00ffff"
+          transparent
+          opacity={0.4}
+          side={THREE.DoubleSide}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+      
+      {/* Hotel-themed Sparkles */}
+      <Sparkles 
+        count={40}
+        scale={[frameWidth + 0.6, frameHeight + 0.6, 1]}
+        size={0.08}
+        speed={0.2}
+        opacity={1}
+        color="#00ffff"
+      />
+    </group>
+  )
+}
+
+// Enhanced Couple Image Display Component
+function CoupleImageDisplay({ imageUrl, isVisible, imageIndex }) {
+  const meshRef = useRef()
+  const groupRef = useRef()
+  const frameRef = useRef()
+  const [texture, setTexture] = useState(null)
+  const [loadError, setLoadError] = useState(false)
+
+  useEffect(() => {
+    if (!isVisible || !imageUrl) return
+
+    const loader = new THREE.TextureLoader()
+    let isMounted = true
+
+    loader.load(
+      imageUrl,
+      (loadedTexture) => {
+        if (isMounted) {
+          setTexture(loadedTexture)
+          setLoadError(false)
+        }
+      },
+      undefined,
+      () => {
+        if (isMounted) {
+          setLoadError(true)
+          setTexture(null)
+        }
+      }
+    )
+
+    return () => {
+      isMounted = false
+      if (texture) {
+        texture.dispose()
+      }
+    }
+  }, [imageUrl, isVisible])
+
+  useFrame((state) => {
+    if (groupRef.current && isVisible) {
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.2) * 0.05
+    }
+    
+    if (frameRef.current) {
+      frameRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.4) * 0.03
+    }
+  })
+
+  if (!isVisible) return null
+
+  const frameWidth = 4
+  const frameHeight = 3
+  const frameThickness = 0.12
+
+  return (
+    <group ref={groupRef} position={[0, 0, 0]}>
+      {/* Romantic Heart-shaped Frame */}
+      <group ref={frameRef}>
+        <mesh position={[0, 0, -frameThickness/2]}>
+          <planeGeometry args={[frameWidth, frameHeight]} />
+          <meshStandardMaterial
+            color="#ff6b6b"
+            metalness={0.8}
+            roughness={0.2}
+            emissive="#ff6b6b"
+            emissiveIntensity={0.5}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        
+        {/* Heart corner decorations */}
+        {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([x, y], i) => (
+          <mesh key={i} position={[
+            x * (frameWidth/2 - 0.2),
+            y * (frameHeight/2 - 0.2),
+            frameThickness/2 + 0.01
+          ]}>
+            <sphereGeometry args={[0.12, 8, 6]} />
+            <meshStandardMaterial
+              color="#ffd700"
+              metalness={0.7}
+              roughness={0.3}
+              emissive="#ffd700"
+              emissiveIntensity={0.8}
             />
           </mesh>
         ))}
@@ -507,26 +646,26 @@ function ImageDisplay({ position, imageUrl, isVisible, imageIndex, isCouplePhoto
         />
       </mesh>
       
-      {/* Magical glow around image */}
+      {/* Romantic pink glow around couple image */}
       <mesh rotation={[0, 0, 0]} position={[0, 0, 0.01]}>
-        <ringGeometry args={[frameWidth/2 - 0.1, frameWidth/2, 32]} />
+        <ringGeometry args={[frameWidth/2 - 0.05, frameWidth/2, 32]} />
         <meshBasicMaterial
-          color="#00ffff"
+          color="#ff69b4"
           transparent
-          opacity={0.6}
+          opacity={0.5}
           side={THREE.DoubleSide}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
       
-      {/* Enhanced Sparkles */}
+      {/* Romantic Sparkles */}
       <Sparkles 
-        count={50}
-        scale={[frameWidth + 0.5, frameHeight + 0.5, 1]}
-        size={0.1}
-        speed={0.3}
+        count={60}
+        scale={[frameWidth + 0.8, frameHeight + 0.8, 1]}
+        size={0.12}
+        speed={0.4}
         opacity={1}
-        color={isCouplePhoto ? "#ff6b6b" : "#ffd700"}
+        color="#ff69b4"
       />
     </group>
   )
@@ -577,24 +716,23 @@ function IraqiMap({ onMarkerClick, showVenue }) {
         onClick={onMarkerClick}
         isActive={showVenue}
       />
-
     </group>
   )
 }
 
 // Wedding Information Display
-function WeddingInfoDisplay({ position, visible }) {
+function WeddingInfoDisplay({ visible }) {
   const groupRef = useRef()
   
   useFrame((state) => {
     if (groupRef.current && visible) {
-      groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.6) * 0.03
+      groupRef.current.position.y = -2.5 + Math.sin(state.clock.elapsedTime * 0.6) * 0.03
       groupRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.8) * 0.02
     }
   })
 
   return (
-    <group ref={groupRef} position={position} visible={visible}>
+    <group ref={groupRef} position={[0, -2.5, 0.1]} visible={visible}>
       {/* Background plate */}
       <mesh position={[0, -0.15, -0.01]}>
         <planeGeometry args={[2, 0.8]} />
@@ -613,7 +751,7 @@ function WeddingInfoDisplay({ position, visible }) {
         anchorY="middle"
         fontWeight="bold"
       >
-        خالد ❤️ بيار
+        خالد ❤️ بيان
       </Text>
       <Text
         position={[0, -0.22, 0]}
@@ -640,21 +778,32 @@ function WeddingInfoDisplay({ position, visible }) {
 }
 
 // Camera Controller for smooth transitions
-function CameraController({ isVenueView, onTransitionComplete }) {
+function CameraController({ isVenueView, showCouplePhotos, onTransitionComplete }) {
   const { camera } = useThree()
   const progress = useRef(0)
   const isAnimating = useRef(false)
+  const prevIsVenueView = useRef(isVenueView)
+  const prevShowCouplePhotos = useRef(showCouplePhotos)
 
   useEffect(() => {
-    isAnimating.current = true
-    progress.current = 0
-  }, [isVenueView])
+    if (isVenueView !== prevIsVenueView.current || showCouplePhotos !== prevShowCouplePhotos.current) {
+      isAnimating.current = true
+      progress.current = 0
+      prevIsVenueView.current = isVenueView
+      prevShowCouplePhotos.current = showCouplePhotos
+    }
+  }, [isVenueView, showCouplePhotos])
 
   useFrame((state, delta) => {
     if (!isAnimating.current) return
 
-    const targetView = isVenueView ? VENUE_VIEW : MAP_VIEW
-    const currentView = isVenueView ? MAP_VIEW : VENUE_VIEW
+    const targetView = isVenueView 
+      ? (showCouplePhotos ? VENUE_VIEW_COUPLE : VENUE_VIEW_HOTEL)
+      : MAP_VIEW
+      
+    const currentView = isVenueView 
+      ? MAP_VIEW 
+      : (showCouplePhotos ? VENUE_VIEW_COUPLE : VENUE_VIEW_HOTEL)
 
     progress.current = Math.min(progress.current + delta * 1.5, 1)
     
@@ -690,8 +839,8 @@ function CustomOrbitControls({ isVenueView, isTransitioning }) {
     const controls = controlsRef.current
     if (controls) {
       if (isVenueView) {
-        controls.minDistance = 2
-        controls.maxDistance = 10
+        controls.minDistance = 5
+        controls.maxDistance = 12
         controls.maxPolarAngle = Math.PI
         controls.enablePan = false
       } else {
@@ -721,74 +870,74 @@ function FloatingNavigation({ currentImageIndex, totalImages, onNext, onPrev, on
   if (!showVenue) return null
 
   return (
-  <div className="absolute bottom-3 left-3 right-3 z-50">
-    <div className="bg-black/95 backdrop-blur-2xl rounded-xl p-2 border border-cyan-500/60 shadow-2xl">
-      {/* Single row layout */}
-      <div className="flex items-center justify-between gap-2">
-        {/* Previous button */}
-        <button 
-          className="px-2 py-1.5 bg-cyan-600/60 hover:bg-cyan-600/80 border border-cyan-400/80 rounded-lg text-cyan-100 text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 flex items-center gap-1 min-w-[60px] justify-center"
-          onClick={onPrev}
-        >
-          <span className="text-[8px]">◀</span>
-          <span>السابق</span>
-        </button>
-        
-        {/* Mode selector */}
-        <div className="flex gap-1 flex-1 justify-center">
+    <div className="absolute bottom-3 left-3 right-3 z-50 pb-3">
+      <div className="bg-black/95 backdrop-blur-2xl rounded-xl p-2 border border-cyan-500/60 shadow-2xl">
+        {/* Single row layout */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Previous button */}
           <button 
-            className={`px-2 py-1.5 border rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 flex-1 max-w-[80px] ${
-              !showCouplePhotos 
-                ? 'bg-cyan-600/80 border-cyan-400 text-cyan-100' 
-                : 'bg-cyan-600/40 border-cyan-400/50 text-cyan-200/90'
-            }`}
-            onClick={() => onToggleView('hotel')}
+            className="px-1 py-1.5 bg-cyan-600/60 hover:bg-cyan-600/80 border border-cyan-400/80 rounded-lg text-cyan-100 text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 flex items-center gap-1 min-w-[60px] justify-center"
+            onClick={onPrev}
           >
-            🏨 الفندق
+            <span className="text-[8px]">◀</span>
+            <span>السابق</span>
           </button>
           
+          {/* Mode selector */}
+          <div className="flex gap-1 flex-1 justify-center">
+            <button 
+              className={`px-1 py-1.5 border rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 flex-1 max-w-[80px] ${
+                !showCouplePhotos 
+                  ? 'bg-cyan-600/80 border-cyan-400 text-cyan-100' 
+                  : 'bg-cyan-600/40 border-cyan-400/50 text-cyan-200/90'
+              }`}
+              onClick={() => onToggleView('hotel')}
+            >
+              🏨 الفندق
+            </button>
+            
+            <button 
+              className={`px-1 py-1.5 border rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 flex-1 max-w-[80px] ${
+                showCouplePhotos 
+                  ? 'bg-pink-600/80 border-pink-400 text-pink-100' 
+                  : 'bg-pink-600/40 border-pink-400/50 text-pink-200/90'
+              }`}
+              onClick={() => onToggleView('couple')}
+            >
+              💑 العروسين
+            </button>
+          </div>
+          
+          {/* Next button */}
           <button 
-            className={`px-2 py-1.5 border rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 flex-1 max-w-[80px] ${
-              showCouplePhotos 
-                ? 'bg-pink-600/80 border-pink-400 text-pink-100' 
-                : 'bg-pink-600/40 border-pink-400/50 text-pink-200/90'
-            }`}
-            onClick={() => onToggleView('couple')}
+            className="px-1 py-1.5 bg-cyan-600/60 hover:bg-cyan-600/80 border border-cyan-400/80 rounded-lg text-cyan-100 text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 flex items-center gap-1 min-w-[60px] justify-center"
+            onClick={onNext}
           >
-            💑 العروسين
+            <span>التالي</span>
+            <span className="text-[8px]">▶</span>
           </button>
         </div>
         
-        {/* Next button */}
-        <button 
-          className="px-2 py-1.5 bg-cyan-600/60 hover:bg-cyan-600/80 border border-cyan-400/80 rounded-lg text-cyan-100 text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 flex items-center gap-1 min-w-[60px] justify-center"
-          onClick={onNext}
-        >
-          <span>التالي</span>
-          <span className="text-[8px]">▶</span>
-        </button>
-      </div>
-      
-      {/* Bottom row with counter and map button */}
-      <div className="flex items-center justify-between gap-2 mt-2">
-        <div className="text-cyan-200 text-[10px] font-medium">
-          {showCouplePhotos ? 'خالد ❤️ بيان' : 'فندق جراند ميلينيوم'}
+        {/* Bottom row with counter and map button */}
+        <div className="flex items-center justify-between gap-2 mt-2">
+          <div className="text-cyan-200 text-[10px] font-medium">
+            {showCouplePhotos ? 'خالد ❤️ بيان' : 'فندق جراند ميلينيوم'}
+          </div>
+          
+          <div className="text-yellow-200 text-[10px] font-semibold">
+            {currentImageIndex + 1} / {totalImages}
+          </div>
+          
+          <button 
+            className="px-2 py-1 bg-gradient-to-r from-purple-600/70 to-pink-600/70 hover:from-purple-600/90 hover:to-pink-600/90 border border-purple-400/80 rounded-lg text-white text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30"
+            onClick={() => onToggleView('map')}
+          >
+            🌍 الخريطة
+          </button>
         </div>
-        
-        <div className="text-yellow-200 text-[10px] font-semibold">
-          {currentImageIndex + 1} / {totalImages}
-        </div>
-        
-        <button 
-          className="px-2 py-1 bg-gradient-to-r from-purple-600/70 to-pink-600/70 hover:from-purple-600/90 hover:to-pink-600/90 border border-purple-400/80 rounded-lg text-white text-[10px] font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30"
-          onClick={() => onToggleView('map')}
-        >
-          🌍 الخريطة
-        </button>
       </div>
     </div>
-  </div>
-)
+  )
 }
 
 // Control Instructions Component
@@ -797,6 +946,7 @@ function ControlInstructions({ showVenue }) {
 
   return (
     <div className="absolute top-20 right-4 bg-black/60 backdrop-blur-md rounded-lg p-3 border border-cyan-500/40 z-40">
+      <p className="text-white/70 text-xs">💫 استخدم الماوس للتحريك والتكبير</p>
     </div>
   )
 }
@@ -813,7 +963,7 @@ export default function IraqWeddingMap() {
     setMounted(true)
   }, [])
 
-  // Auto-rotate images
+  // Auto-rotate images - Fixed useEffect dependencies
   useEffect(() => {
     if (!showVenue || isTransitioning || interactionLock) return
 
@@ -827,32 +977,32 @@ export default function IraqWeddingMap() {
     return () => clearInterval(interval)
   }, [showVenue, isTransitioning, showCouplePhotos, interactionLock])
 
-  const handleMarkerClick = (e) => {
+  const handleMarkerClick = useMemo(() => (e) => {
     if (interactionLock || showVenue) return
     e.stopPropagation() 
     setIsTransitioning(true)
     setShowVenue(true)
     setInteractionLock(true)
     setTimeout(() => setInteractionLock(false), 2000)
-  }
+  }, [interactionLock, showVenue])
 
-  const handleNextImage = () => {
+  const handleNextImage = useMemo(() => () => {
     if (interactionLock) return
     setInteractionLock(true)
     const currentImages = showCouplePhotos ? COUPLE_PHOTOS : HOTEL_IMAGES
     setCurrentImageIndex(prev => (prev + 1) % currentImages.length)
     setTimeout(() => setInteractionLock(false), 500)
-  }
+  }, [interactionLock, showCouplePhotos])
 
-  const handlePrevImage = () => {
+  const handlePrevImage = useMemo(() => () => {
     if (interactionLock) return
     setInteractionLock(true)
     const currentImages = showCouplePhotos ? COUPLE_PHOTOS : HOTEL_IMAGES
     setCurrentImageIndex(prev => (prev - 1 + currentImages.length) % currentImages.length)
     setTimeout(() => setInteractionLock(false), 500)
-  }
+  }, [interactionLock, showCouplePhotos])
 
-  const handleToggleView = (viewType) => {
+  const handleToggleView = useMemo(() => (viewType) => {
     if (interactionLock) return
     
     setInteractionLock(true)
@@ -872,11 +1022,11 @@ export default function IraqWeddingMap() {
       setIsTransitioning(false)
       setInteractionLock(false)
     }, 1500)
-  }
+  }, [interactionLock])
 
-  const handleTransitionComplete = () => {
+  const handleTransitionComplete = useMemo(() => () => {
     setIsTransitioning(false)
-  }
+  }, [])
 
   const currentImages = showCouplePhotos ? COUPLE_PHOTOS : HOTEL_IMAGES
   const currentImageUrl = currentImages[currentImageIndex]
@@ -923,26 +1073,30 @@ export default function IraqWeddingMap() {
         {/* Iraq Map */}
         <IraqiMap onMarkerClick={handleMarkerClick} showVenue={showVenue} />
         
-        {/* Image Display */}
-        <group position={[BASRA_WEDDING_LOCATION[0], BASRA_WEDDING_LOCATION[1], 0.5]}>
-          <ImageDisplay 
-            position={[0, 0, 0]} 
+        {/* Image Display - Centered at origin */}
+        {showVenue && !showCouplePhotos && (
+          <HotelImageDisplay 
             imageUrl={currentImageUrl}
             isVisible={showVenue}
             imageIndex={currentImageIndex}
-            isCouplePhoto={showCouplePhotos}
           />
-        </group>
+        )}
+        
+        {showVenue && showCouplePhotos && (
+          <CoupleImageDisplay 
+            imageUrl={currentImageUrl}
+            isVisible={showVenue}
+            imageIndex={currentImageIndex}
+          />
+        )}
         
         {/* Wedding Information */}
-        <WeddingInfoDisplay 
-          position={[BASRA_WEDDING_LOCATION[0], BASRA_WEDDING_LOCATION[1] - 1.2, 0.1]} 
-          visible={showVenue} 
-        />
+        <WeddingInfoDisplay visible={showVenue} />
         
         {/* Camera Controller */}
         <CameraController 
           isVenueView={showVenue} 
+          showCouplePhotos={showCouplePhotos}
           onTransitionComplete={handleTransitionComplete}
         />
         
@@ -959,16 +1113,12 @@ export default function IraqWeddingMap() {
         
         {/* Dynamic spotlight */}
         <spotLight 
-          position={[
-            BASRA_WEDDING_LOCATION[0], 
-            BASRA_WEDDING_LOCATION[1], 
-            showVenue ? 4 : 8
-          ]} 
+          position={[0, 0, showVenue ? 10 : 8]} 
           intensity={showVenue ? 2 : 0.5} 
-          color="#ffd700"
-          angle={0.3}
+          color={showCouplePhotos ? "#ff69b4" : "#ffd700"}
+          angle={0.4}
           penumbra={0.5}
-          distance={15}
+          distance={20}
         />
       </Canvas>
 
@@ -981,13 +1131,12 @@ export default function IraqWeddingMap() {
       {/* Elegant Title */}
       <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-center">
         <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-purple-300 mb-2">
-          خالد ❤️ بيار
+          خالد ❤️ بيان
         </h1>
         <p className="text-white/80 text-sm mb-1">{WEDDING_INFO.date}</p>
         <p className="text-white/60 text-xs">{WEDDING_INFO.location}</p>
       </div>
 
-     
       {/* Control Instructions */}
       <ControlInstructions showVenue={showVenue} />
 
