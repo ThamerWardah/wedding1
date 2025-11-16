@@ -747,7 +747,7 @@ export default function Light(){
         <div className="text-center mb-4 mt-2">
           <div className="bg-white/10 rounded-lg px-4 py-2 inline-flex items-center gap-2 backdrop-blur-sm border border-white/10">
             <span className="text-white font-semibold text-lg">
-              {lang === 'ar' ? '١٩ ديسمبر ٢٠٢٥ - ٧:٠٠ مساءً' : 'December 19, 2025 - 7:00 PM'}
+              {lang === 'ar' ? '١٩ ديسمبر ٢٠٢٥ - ٤:٠٠ مساءً' : 'December 19, 2025 - 4:00 PM'}
             </span>
           </div>
         </div>
