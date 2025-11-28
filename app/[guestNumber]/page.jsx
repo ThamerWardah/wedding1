@@ -5,7 +5,6 @@ import "@fontsource/amiri/400.css";
 import "@fontsource/amiri/700.css";
 
 import { AnimatePresence, motion } from 'framer-motion';
-import Link from "next/link";
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -793,11 +792,9 @@ export default function Light(){
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
-        className="relative rounded-2xl p-1 pb-2 mb-20 min-h-[100px] border border-white/20 w-6/8 z-[120] shadow-xl shadow-[#F5F5DC] text-center flex justify-center items-center text-blue-900 text-lg"
+        className="relative rounded-2xl p-1 pb-2 mb-20 min-h-[100px] border border-white/20 w-6/8 z-[60] shadow-xl shadow-[#F5F5DC] text-center flex justify-center items-center text-blue-900 text-lg"
       >
-              <Link href="/three" className="z-[200]">
         {t.location}
-        </Link>
       </motion.div>
 
       <div className="fixed z-10 bg-[url('/h1.jpg')] inset-0 bg-cover bg-center w-2/5 h-screen">
